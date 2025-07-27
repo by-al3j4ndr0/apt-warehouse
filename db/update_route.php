@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vehicule = $_POST['vehicule'];
     $status = 'delivering';
     
-    if (is_array($_POST['clients'])) {
+    if (($_POST['clients'])) {
         $clients = '';
         $num_clients = count($_POST['clients']);
         $current = 0;

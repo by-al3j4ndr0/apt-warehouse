@@ -9,13 +9,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Prepare and execute
-    $stmt = $conn->prepare("SELECT password FROM auth_user WHERE username = ?");
+    $stmt = $conn->prepare("SELECT `password`, `first_name`, `last_name` FROM auth_user WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-        $stmt->bind_result($db_password);
+        $stmt->bind_result($db_password, $firstname, $lastname);
         $stmt->fetch();
 
         $pieces = explode("$", $db_password);
@@ -33,6 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Start the session and redirect to the dashboard or home page
             session_start();
             $_SESSION['username'] = $username;
+            $_SESSION['first_name'] = $firstname;
+            $_SESSION['last_name'] = $lastname;
             header("Location: index.php");
             exit();
         }
@@ -98,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="col mb-3 mt-3">
                 <label for="password"><i
                   class="fa fa-lock"></i> Contrase&ntilde;a</label>
-                <input type="text" name="password" id="password" 
+                <input type="password" name="password" id="password" 
                   class="form-control" required>
             </div>
             <div class="col mb-3 mt-3">

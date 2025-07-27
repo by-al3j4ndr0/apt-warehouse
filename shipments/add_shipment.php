@@ -13,12 +13,12 @@ if (!isset($_SESSION['username'])) {
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="resources/css/custom.css">
-    <link rel="stylesheet" href="resources/css/bootstrap.min.css">
-    <link rel="stylesheet" href="resources/css/font-awesome.css">
+    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../resources/css/font-awesome.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
-    <script src="resources/js/bootstrap.bundle.min.js"></script>
-    <script src="resources/js/custom.js"></script>
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport"
   content="width=device-width, initial-scale=1.0">
@@ -28,8 +28,8 @@ if (!isset($_SESSION['username'])) {
 <body>
     <nav class="navbar navbar-expand-sm navbar-light bg-success">
         <div class="container">
-            <a class="navbar-brand" href="index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="clients.php" style="font-weight:bold; color:white;">Clientes</a>
+            <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
+            <a class="navbar-brand" href="../clients.php" style="font-weight:bold; color:white;">Clientes</a>
             <a class="navbar-brand" href="shipments.php" style="font-weight:bold; color:white;">Rutas</a>
             <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
@@ -40,7 +40,7 @@ if (!isset($_SESSION['username'])) {
                 <ul class="navbar-nav m-auto mt-2 mt-lg-0">
                 </ul>
                 <form class="d-flex my-2 my-lg-0">
-                    <a href="./logout.php" class="btn btn-light my-2 my-sm-0"
+                    <a href="../logout.php" class="btn btn-light my-2 my-sm-0"
                       type="submit" style="font-weight:bolder;color:green;">
                         Cerrar Sesion</a>
                 </form>
@@ -90,7 +90,7 @@ if (!isset($_SESSION['username'])) {
     </div>
     <div class="container d-flex flex-column align-items-left">
         <div class="form-control">
-            <input type="text" id="search_input" onkeyup="myFunction()" placeholder="Buscar por nombre..">
+            <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por nombre..">
             <table class="table table-light" id="table">
                 <thead>
                     <tr class="header">
@@ -103,7 +103,7 @@ if (!isset($_SESSION['username'])) {
                 </thead>
                 <tbody>
                     <?php
-                        include './db/db_connect.php';
+                        include '../db/db_connect.php';
 
                         $stmt = $conn->query("SELECT * FROM `clients`");
 

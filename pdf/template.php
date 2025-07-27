@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+// Check if the user is logged in, if
+// not then redirect them to the login page
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit();
+}
+?>
 <html>
     <head>
         <meta charset="utf-8" />
@@ -12,8 +22,6 @@ if (isset($_GET['id']))
 function exportRoute($id) {
 
     include('../db/db_connect.php');
-
-    $id = '12';
 
     try {
         $stmt = $conn->query("SELECT * FROM `delivery` WHERE `id` = $id");
@@ -35,7 +43,7 @@ function exportRoute($id) {
     $date = date("d/m/Y");
 
 ?>
-    <div class="p-5 d-flex flex-column align-items-left">
+    <div class="p-4 d-flex flex-column align-items-left">
         <img src="../resources/img/logo.png" class="rounded float-left" height="60" width="159">
     </div>
     <div class="d-flex flex-column align-items-left">
@@ -99,11 +107,11 @@ function exportRoute($id) {
                             $ci = $row['ci'];
                             $tariff = 0;
                             if(in_array($ci, $clients_ci)) {
-                                $pkts_result = $conn->query("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = $ci AND `status` != 'delivered'");
+                                $pkts_result = $conn->query("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = $ci AND `status` != 'finished'");
                                 $pkts_row = $pkts_result->fetch_assoc();
                                 $pkts = $pkts_row['count'];
 
-                                $tariff_result = $conn->query("SELECT `tariff` FROM `shipments` WHERE `ci` = $ci AND `status` != 'delivered'");
+                                $tariff_result = $conn->query("SELECT `tariff` FROM `shipments` WHERE `ci` = $ci AND `status` != 'finished'");
                                 while($tariff_row = $tariff_result->fetch_assoc()){
                                     $tariff += $tariff_row['tariff'];
                                 }
@@ -126,11 +134,28 @@ function exportRoute($id) {
                                 continue;
                             }
                         }
-}
                     ?>
                 </tbody>
             </table>
         </div>
     </div>
+    <div class="p-5 d-flex flex-column align-items-left">
+        <div class="p-3 row">
+            <div class="col">
+                <h5>Emite: <?php echo $_SESSION['first_name'] . " " . $_SESSION['last_name'] ?></h5>
+            </div>
+            <div class="col">
+                
+            </div>
+            <div class="col">
+                <h5>Entrega: </h5>
+            </div>
+        </div>
+    </div>
+    <?php
+
+}
+
+    ?>
 </body>
 </html>

@@ -13,12 +13,12 @@ if (!isset($_SESSION['username'])) {
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="resources/css/custom.css">
-    <link rel="stylesheet" href="resources/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
-    <script src="resources/js/bootstrap.bundle.min.js"></script>
-    <script src="resources/js/custom.js"></script>
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport"
   content="width=device-width, initial-scale=1.0">
@@ -28,8 +28,8 @@ if (!isset($_SESSION['username'])) {
 <body>
     <nav class="navbar navbar-expand-sm navbar-light bg-success">
         <div class="container">
-            <a class="navbar-brand" href="index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="clients.php" style="font-weight:bold; color:white;">Clientes</a>
+            <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
+            <a class="navbar-brand" href="../clients.php" style="font-weight:bold; color:white;">Clientes</a>
             <a class="navbar-brand" href="#" style="font-weight:bold; color:white;">Rutas</a>
             <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
@@ -40,7 +40,7 @@ if (!isset($_SESSION['username'])) {
                 <ul class="navbar-nav m-auto mt-2 mt-lg-0">
                 </ul>
                 <form class="d-flex my-2 my-lg-0">
-                    <a href="./logout.php" class="btn btn-light my-2 my-sm-0"
+                    <a href="../logout.php" class="btn btn-light my-2 my-sm-0"
                       type="submit" style="font-weight:bolder;color:green;">
                         Cerrar Sesion</a>
                 </form>
@@ -56,7 +56,7 @@ if (!isset($_SESSION['username'])) {
         </form>
     </div>
     <div class="container p-5 d-flex flex-column align-items-left">  
-        <input type="text" id="search_input" onkeyup="myFunction()" placeholder="Buscar por ID..">
+        <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por ID..">
         <table class="table table-light" id="table">
             <thead>
                 <tr class="header">
@@ -68,7 +68,7 @@ if (!isset($_SESSION['username'])) {
             <tbody>
                 <?php
 
-                    include './db/db_connect.php';
+                    include '../db/db_connect.php';
 
                     $stmt = $conn->query("SELECT * FROM `delivery`");
 
@@ -84,14 +84,12 @@ if (!isset($_SESSION['username'])) {
                         <td><?php echo $row['name'] ?></td>
                         <td><?php echo $row['driver'] ?></td>
                         <td><a href="update_shipment.php?id=<?php echo $row['id'] ?>" ><i class="<?php echo $update ?>"></a></td>
-                        <td><a href="pdf/template.php?id=<?php echo $row['id'] ?>"><i class="fa fa-print"></a></td>
+                        <td><a target="_blank" href="../pdf/template.php?id=<?php echo $row['id'] ?>"><i class="fa fa-print"></a></td>
                         <td><a href=""><i class="fa fa-trash"></a></td>
                     </tr>
                 <?php 
-                    }
+                    }   
                 ?>
-
-                
             </tbody>
         </table>
     </div>

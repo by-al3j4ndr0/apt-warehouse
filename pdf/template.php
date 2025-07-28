@@ -4,7 +4,7 @@ session_start();
 // Check if the user is logged in, if
 // not then redirect them to the login page
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 ?>
@@ -31,11 +31,16 @@ function exportRoute($id) {
         $status = $route_data['status'];
         $driver = $route_data['driver'];
         $vehicule = $route_data['vehicule'];
-        $shipments = $route_data['shipments'];
 
         $licence_stmt = $conn->query("SELECT * FROM `drivers` WHERE `name` = '$driver'");
         $licence_array = $licence_stmt->fetch_assoc();
         $licence = $licence_array['ci'];
+
+        if($status == 'delivering') {
+            $status = "Entregando";
+        } else if ($status == 'finished') {
+            $status = "Terminada";
+        }
     } catch (Exception $e) {
         echo $e;
     }
@@ -123,7 +128,7 @@ function exportRoute($id) {
                                     <td style="font-size: 15px"><?php echo $pkts ?></td>
                                     <td style="font-size: 15px"><?php echo $tariff ?></td>
                                     <td style="font-size: 15px" rowspan="2">
-                                        <input type="text" class="form-control" placeholder="FIRMA DEL CLIENTE">
+                                        <input type="text" class="form-control" placeholder="">
                                     </td>
                                 </tr>
                                 <tr>

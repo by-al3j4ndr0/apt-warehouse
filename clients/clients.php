@@ -4,7 +4,7 @@ session_start();
 // Check if the user is logged in, if
 // not then redirect them to the login page
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 ?>
@@ -13,12 +13,12 @@ if (!isset($_SESSION['username'])) {
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="resources/css/custom.css">
-    <link rel="stylesheet" href="resources/css/bootstrap.min.css">
-    <link rel="stylesheet" href="resources/css/font-awesome.css">
+    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../resources/css/font-awesome.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
-    <script src="resources/js/bootstrap.bundle.min.js"></script>
-    <script src="resources/js/custom.js"></script>
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport"
   content="width=device-width, initial-scale=1.0">
@@ -28,9 +28,9 @@ if (!isset($_SESSION['username'])) {
 <body>
     <nav class="navbar navbar-expand-sm navbar-light bg-success">
         <div class="container">
-            <a class="navbar-brand" href="index.php" style="font-weight:bold; color:white;">Inicio</a>
+            <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
             <a class="navbar-brand" href="#" style="font-weight:bold; color:white;">Clientes</a>
-            <a class="navbar-brand" href="shipments/shipments.php" style="font-weight:bold; color:white;">Rutas</a>
+            <a class="navbar-brand" href="../shipments/shipments.php" style="font-weight:bold; color:white;">Rutas</a>
             <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -40,7 +40,7 @@ if (!isset($_SESSION['username'])) {
                 <ul class="navbar-nav m-auto mt-2 mt-lg-0">
                 </ul>
                 <form class="d-flex my-2 my-lg-0">
-                    <a href="./logout.php" class="btn btn-light my-2 my-sm-0"
+                    <a href="../logout.php" class="btn btn-light my-2 my-sm-0"
                       type="submit" style="font-weight:bolder;color:green;">
                         Cerrar Sesion</a>
                 </form>
@@ -64,7 +64,7 @@ if (!isset($_SESSION['username'])) {
             <tbody>
                 <?php
 
-                    include './db/db_connect.php';
+                    include '../db/db_connect.php';
 
                     $stmt = $conn->query("SELECT * FROM `clients`");
 
@@ -72,7 +72,11 @@ if (!isset($_SESSION['username'])) {
 
                 ?>
                     <tr>  
-                        <td><?php echo $row['name'] ?></td>
+                        <td>
+                            <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $row['ci'] ?>">
+                                <?php echo $row['name'] ?>
+                            </a>
+                        </td>
                         <td><?php echo $row['ci'] ?></td>
                         <td><?php echo $row['phone'] ?></td>
                         <td><?php echo $row['address'] ?></td> 

@@ -1,5 +1,5 @@
 <?php
-include '../db/db_connect.php';
+include 'db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -8,16 +8,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vehicule = $_POST['vehicule'];
     $status = 'delivering';
     
-    if (($_POST['clients'])) {
+    if ($_POST['clients']) {
         $clients = '';
         $num_clients = count($_POST['clients']);
-        $current = 0;
         foreach ($_POST['clients'] as $key => $value) {
-            if ($current != $num_clients-1)
+            if ($num_clients > 1) {
                 $clients .= $value.', ';
-            else
-                $clients .= $value.'.';
-            $current++;
+            } else {
+                $clients .= $value;
+            }
+            $num_clients--;
         }
     }
 
@@ -32,16 +32,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
 
     foreach ($_POST['clients'] as $key => $client) {
-    // Validate and sanitize the input
-    $client_id = (string)$client; 
-    $status = (string)$status;  
-    
-    // Use prepared statement to prevent SQL injection
-    $stmt = $conn->prepare("UPDATE `shipments` SET `status` = ? WHERE `ci` = ? AND `status` = 'warehouse'");
-    $stmt->bind_param("ss", $status, $client_id);
-    $stmt->execute();
-}
+        // Validate and sanitize the input
+        $client_id = (string)$client; 
+        $status = (string)$status;  
+        
+        // Use prepared statement to prevent SQL injection
+        $stmt = $conn->prepare("UPDATE `shipments` SET `status` = ? WHERE `ci` = ? AND `status` = 'warehouse'");
+        $stmt->bind_param("ss", $status, $client_id);
+        $stmt->execute();
+    }
 
-    header("Location: ../shipments.php");
+    header("Location: ../shipments/shipments.php");
 }
 ?>

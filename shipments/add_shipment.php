@@ -4,7 +4,7 @@ session_start();
 // Check if the user is logged in, if
 // not then redirect them to the login page
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 ?>
@@ -29,7 +29,7 @@ if (!isset($_SESSION['username'])) {
     <nav class="navbar navbar-expand-sm navbar-light bg-success">
         <div class="container">
             <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="../clients.php" style="font-weight:bold; color:white;">Clientes</a>
+            <a class="navbar-brand" href="../clients/clients.php" style="font-weight:bold; color:white;">Clientes</a>
             <a class="navbar-brand" href="shipments.php" style="font-weight:bold; color:white;">Rutas</a>
             <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
@@ -49,16 +49,16 @@ if (!isset($_SESSION['username'])) {
     </nav>
 
     <div class="container p-5 d-flex flex-column align-items-left">
-        <form action="db/create_route.php" method="post">
+        <form action="../db/create_route.php" method="post">
             <div class="form-control">
                     <label for="formGroupExampleInput">Nombre</label>  
-                    <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00">
+                    <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00" autocomple="nope">
                 <div class="row">
                     <div class="col">
                         <label for="formGroupExampleInput">Chofer</label> 
                         <select id="driver" class="form-control" name="driver">
                             <?php
-                                include './db/db_connect.php';
+                                include '../db/db_connect.php';
 
                                 $driver_stmt = $conn->query("SELECT * FROM `drivers`");
                                 while ($driver_row = $driver_stmt->fetch_assoc()) {
@@ -73,7 +73,7 @@ if (!isset($_SESSION['username'])) {
                         <label for="formGroupExampleInput">Vehiculo</label> 
                         <select id="vehicule" class="form-control" name="vehicule">
                             <?php
-                                include './db/db_connect.php';
+                                include '../db/db_connect.php';
 
                                 $vh_stmt = $conn->query("SELECT * FROM `vehicules`");
                                 while ($vh_row = $vh_stmt->fetch_assoc()) {

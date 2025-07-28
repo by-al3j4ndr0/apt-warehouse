@@ -8,23 +8,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vehicule = $_POST['vehicule'];
     $status = 'delivering';
     
-    if (($_POST['clients'])) {
+    if ($_POST['clients']) {
         $clients = '';
         $num_clients = count($_POST['clients']);
-        $current = 0;
         foreach ($_POST['clients'] as $key => $value) {
-            if ($current != $num_clients-1)
+            if ($num_clients > 1) {
                 $clients .= $value.', ';
-            else
-                $clients .= $value.'.';
-            $current++;
+            } else {
+                $clients .= $value;
+            }
+            $num_clients--;
         }
     }
 
     try {
         $clients_stmt = $conn->query("SELECT `shipments` FROM `delivery` WHERE `id` = $id");
         $clients_array = $clients_stmt->fetch_assoc();
-        $clients_before = substr($clients_array['shipments'], 0, -1);
         $clients_before = explode(", ", $clients_before);
 
         $stmt = $conn->prepare("UPDATE `delivery` SET 
@@ -77,6 +76,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo $e;
     }
     
-    header("Location: ../shipments.php");
+    header("Location: ../shipments/shipments.php");
 }
 ?>

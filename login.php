@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="username"><i 
                   class="fa fa-user-lock"></i> Nombre de usuario</label>
                 <input type="text" name="username" id="username"
-                  class="form-control" required>
+                  class="form-control" autocomple="off" required>
             </div>
             <div class="col mb-3 mt-3">
                 <label for="password"><i

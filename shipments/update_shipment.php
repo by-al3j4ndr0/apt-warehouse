@@ -4,7 +4,7 @@ session_start();
 // Check if the user is logged in, if
 // not then redirect them to the login page
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 
@@ -39,7 +39,7 @@ if (isset($_GET['id']))
     <nav class="navbar navbar-expand-sm navbar-light bg-success">
         <div class="container">
             <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="../clients.php" style="font-weight:bold; color:white;">Clientes</a>
+            <a class="navbar-brand" href="../clients/clients.php" style="font-weight:bold; color:white;">Clientes</a>
             <a class="navbar-brand" href="shipments.php" style="font-weight:bold; color:white;">Rutas</a>
             <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
@@ -59,11 +59,11 @@ if (isset($_GET['id']))
     </nav>
 
     <div class="container p-5 d-flex flex-column align-items-left">
-        <form action="db/update_route.php" method="post">
+        <form action="../db/update_route.php" method="post">
             <div class="form-control">
                 <input type="hidden" value="<?php echo $id ?>" id="id" name="id">
                 <label for="formGroupExampleInput">Nombre</label>
-                <input type="text" class="form-control" id="name" name="name" value="<?php echo $name['name'] ?>" readonly>
+                <input type="text" class="form-control" id="name" name="name" value="<?php echo $name['name'] ?>" autocomple="nope" readonly>
                 <div class="row">
                     <div class="col">
                         <label for="formGroupExampleInput">Chofer</label> 
@@ -110,7 +110,7 @@ if (isset($_GET['id']))
                 </thead>
                 <tbody>
                     <?php
-                            include './db/db_connect.php';
+                            include '../db/db_connect.php';
 
                             $stmt = $conn->query("SELECT * FROM `clients`");
                             $clients_stmt = $conn->query("SELECT `shipments` FROM `delivery` WHERE `id` = $id;");

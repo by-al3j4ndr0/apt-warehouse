@@ -70,7 +70,7 @@ if (!isset($_SESSION['username'])) {
 
                     include '../db/db_connect.php';
 
-                    $stmt = $conn->query("SELECT * FROM `delivery`");
+                    $stmt = $conn->query("SELECT * FROM `delivery` ORDER BY `id` desc");
 
                     while ($row = $stmt->fetch_assoc()) {
                         if ($row['status'] == 'finished') {

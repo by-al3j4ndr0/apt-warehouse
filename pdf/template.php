@@ -132,7 +132,7 @@ function exportRoute($id) {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="6" style="font-size: 15px"><b>Direccion: </b><?php echo $row['address']?></td>
+                                    <td colspan="6" style="font-size: 15px"><b>Direccion: </b><?php echo $row['address'] . " " . $row['city']?></td>
                                 </tr>
                     <?php
                             } else {

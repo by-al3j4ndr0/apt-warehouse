@@ -95,7 +95,7 @@ if (isset($_GET['id']))
             </div>
   
     </div>
-    <div class="container d-flex flex-column align-items-left">
+    <div class="d-flex flex-column align-items-left">
         <div class="form-control">
             <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por nombre..">
             <table class="table table-light" id="table">
@@ -112,31 +112,67 @@ if (isset($_GET['id']))
                     <?php
                             include '../db/db_connect.php';
 
-                            $stmt = $conn->query("SELECT * FROM `clients`");
-                            $clients_stmt = $conn->query("SELECT `shipments` FROM `delivery` WHERE `id` = $id;");
-                            $clients_array = $clients_stmt->fetch_assoc();
-                            $clients_ci = explode(", ", $clients_array['shipments']);
-                            
-                            while ($row = $stmt->fetch_assoc()) {   
-                                $ci = $row['ci'];
-                                if(in_array($ci, $clients_ci)) {
-                                    $checkbox_status = 'checked';
+                            // 1. Use prepared statements to prevent SQL injection
+                            $delivery_stmt = $conn->prepare("SELECT `shipments` FROM `delivery` WHERE `id` = ?");
+                            $delivery_stmt->bind_param("i", $id);
+                            $delivery_stmt->execute();
+                            $delivery_result = $delivery_stmt->get_result();
+                            $delivery_data = $delivery_result->fetch_assoc();
+                            $delivery_stmt->close();
+
+                            // 2. Get the list of client IDs from shipments
+                            $client_ids_in_shipments = [];
+                            if (!empty($delivery_data['shipments'])) {
+                                $client_ids_in_shipments = array_map('trim', explode(",", $delivery_data['shipments']));
+                            }
+
+                            // 3. Get all clients ordered by city
+                            $client_stmt = $conn->prepare("SELECT * FROM `clients` ORDER BY `city` ASC");
+                            $client_stmt->execute();
+                            $client_result = $client_stmt->get_result();
+
+                            // 4. Prepare queries for shipment counts to reuse them
+                            $warehouse_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `status` = 'warehouse'");
+                            $delivering_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `status` = 'delivering'");
+
+                            // 5. Process each client
+                            while ($client = $client_result->fetch_assoc()) {
+                                $client_id = $client['ci'];
+                                $is_in_shipments = in_array($client_id, $client_ids_in_shipments);
+                                
+                                // Get the appropriate count based on shipment status
+                                if ($is_in_shipments) {
+                                    $delivering_stmt->bind_param("s", $client_id);
+                                    $delivering_stmt->execute();
+                                    $count_result = $delivering_stmt->get_result();
+                                    $count_data = $count_result->fetch_assoc();
+                                    $shipment_count = $count_data['count'];
+                                    
+                                    if ($shipment_count === 0) {
+                                        continue;
+                                    }
                                 } else {
-                                    $checkbox_status = '';
+                                    $warehouse_stmt->bind_param("s", $client_id);
+                                    $warehouse_stmt->execute();
+                                    $count_result = $warehouse_stmt->get_result();
+                                    $count_data = $count_result->fetch_assoc();
+                                    $shipment_count = $count_data['count'];
+                                    
+                                    if ($shipment_count === 0) {
+                                        continue;
+                                    }
                                 }
-                                $pkts_result = $conn->query("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = $ci AND `status` != 'finished'");
-                                $pkts_row = $pkts_result->fetch_assoc();
-                                $pkts = $pkts_row['count'];
-                                if($pkts == 0) {
-                                    continue;
-                                }
+                                
+                                // Output or process the client data
+                                $checkbox_status = $is_in_shipments ? 'checked' : '';                         
+                                
                     ?>
                                 <tr>  
                                     <td><input class="form-check-input" type="checkbox" value="<?php echo $row['ci']; ?>" name="clients[]" <?php echo $checkbox_status ?>></td>
-                                    <td><?php echo $row['name'] ?></td>
-                                    <td><?php echo $pkts ?></td>
-                                    <td><?php echo $row['city'] ?></td>
-                                    <td><?php echo $row['state'] ?></td>
+                                    <td><?php echo $client['name'] ?></td>
+                                    <td><?php echo $shipment_count ?></td>
+                                    <td><?php echo $client['city'] ?></td>
+                                    <td><?php echo $client['state'] ?></td>
                                 </tr>
                     <?php 
                             }

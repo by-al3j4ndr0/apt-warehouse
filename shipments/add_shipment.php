@@ -88,7 +88,7 @@ if (!isset($_SESSION['username'])) {
             </div>
   
     </div>
-    <div class="container d-flex flex-column align-items-left">
+    <div class="d-flex flex-column align-items-left">
         <div class="form-control">
             <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por nombre..">
             <table class="table table-light" id="table">
@@ -105,23 +105,31 @@ if (!isset($_SESSION['username'])) {
                     <?php
                         include '../db/db_connect.php';
 
-                        $stmt = $conn->query("SELECT * FROM `clients`");
+                        $client_stmt = $conn->prepare("SELECT * FROM `clients` ORDER BY `city` ASC");
+                        $client_stmt->execute();
+                        $client_result = $client_stmt->get_result();
 
-                        while ($row = $stmt->fetch_assoc()) {
-                            $ci = $row['ci'];
-                            $pkts_result = $conn->query("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = $ci AND `status` = 'warehouse'");
-                            $pkts_row = $pkts_result->fetch_assoc();
-                            $pkts = $pkts_row['count'];
-                            if($pkts == 0) {
+                        $warehouse_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `status` = 'warehouse'");
+
+                        while ($client = $client_result->fetch_assoc()) {
+                            $client_id = $client['ci'];
+
+                            $warehouse_stmt->bind_param("s", $client_id);
+                            $warehouse_stmt->execute();
+                            $count_result = $warehouse_stmt->get_result();
+                            $count_data = $count_result->fetch_assoc();
+                            $shipment_count = $count_data['count'];
+                                    
+                            if ($shipment_count === 0) {
                                 continue;
                             }
                     ?>
                         <tr>  
                             <td><input class="form-check-input" type="checkbox" value="<?php echo $row['ci']; ?>" name="clients[]"></td>
-                            <td><?php echo $row['name'] ?></td>
-                            <td><?php echo $pkts ?></td>
-                            <td><?php echo $row['city'] ?></td>
-                            <td><?php echo $row['state'] ?></td>
+                            <td><?php echo $client['name'] ?></td>
+                            <td><?php echo $shipment_count ?></td>
+                            <td><?php echo $client['city'] ?></td>
+                            <td><?php echo $client['state'] ?></td>
                         </tr>
                     <?php 
                         }

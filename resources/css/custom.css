@@ -30,3 +30,23 @@
   /* Add a grey background color to the table header and on hover */
   background-color: #f1f1f1;
 }
+
+th {
+  position: relative;
+  padding-right: 20px;
+}
+
+.sort-indicator {
+  position: absolute;
+  right: 5px;
+}
+
+th.asc .sort-indicator::after {
+  content: ' ↑';
+  color: currentColor;
+}
+
+th.desc .sort-indicator::after {
+  content: ' ↓';
+  color: currentColor;
+}

@@ -51,8 +51,27 @@ if (!isset($_SESSION['username'])) {
     <div class="container p-5 d-flex flex-column align-items-left">
         <form action="../db/create_route.php" method="post">
             <div class="form-control">
-                    <label for="formGroupExampleInput">Nombre</label>  
-                    <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00" autocomple="nope">
+                <div class="row">
+                    <div class="col">
+                        <label for="formGroupExampleInput">Nombre</label>  
+                        <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00" autocomple="nope">
+                    </div>
+                    <div class="col">
+                        <label for="formGroupExampleInput">Origen</label>  
+                         <select id="origen" class="form-control" name="origen">
+                            <?php
+                                include '../db/db_connect.php';
+
+                                $origen_stmt = $conn->query("SELECT * FROM `origen`");
+                                while ($origen_row = $origen_stmt->fetch_assoc()) {
+                            ?>
+                            <option id="<?php echo $origen_row['id']; ?>"><?php echo $origen_row['name'] ?></option>
+                            <?php
+                                }
+                            ?>
+                        </select>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col">
                         <label for="formGroupExampleInput">Chofer</label> 
@@ -125,7 +144,7 @@ if (!isset($_SESSION['username'])) {
                             }
                     ?>
                         <tr>  
-                            <td><input class="form-check-input" type="checkbox" value="<?php echo $row['ci']; ?>" name="clients[]"></td>
+                            <td><input class="form-check-input" type="checkbox" value="<?php echo $client['ci']; ?>" name="clients[]"></td>
                             <td><?php echo $client['name'] ?></td>
                             <td><?php echo $shipment_count ?></td>
                             <td><?php echo $client['city'] ?></td>

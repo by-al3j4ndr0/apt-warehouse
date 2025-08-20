@@ -28,6 +28,7 @@ if (isset($_GET['id']))
     <link rel="stylesheet" href="../resources/css/font-awesome.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
     <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <script src="../resources/js/bootstrap.min.js"></script>
     <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -62,8 +63,27 @@ if (isset($_GET['id']))
         <form action="../db/update_route.php" method="post">
             <div class="form-control">
                 <input type="hidden" value="<?php echo $id ?>" id="id" name="id">
-                <label for="formGroupExampleInput">Nombre</label>
-                <input type="text" class="form-control" id="name" name="name" value="<?php echo $name['name'] ?>" autocomple="nope" readonly>
+                <div class="row">
+                    <div class="col">
+                        <label for="formGroupExampleInput">Nombre</label>  
+                        <input type="text" class="form-control" id="name" name="name" placeholder="<?php echo $name['name'] ?>" autocomple="nope" readonly>
+                    </div>
+                    <div class="col">
+                        <label for="formGroupExampleInput">Origen</label>  
+                        <select id="origen" class="form-control" name="origen">
+                            <?php
+                                include '../db/db_connect.php';
+
+                                $origen_stmt = $conn->query("SELECT `orgien` FROM `delivery` WHERE `id` = $id");
+                                while ($origen_row = $origen_stmt->fetch_assoc()) {
+                            ?>
+                            <option id=""><?php echo $origen_row['orgien'] ?></option>
+                            <?php
+                                }
+                            ?>
+                        </select>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col">
                         <label for="formGroupExampleInput">Chofer</label> 
@@ -168,7 +188,7 @@ if (isset($_GET['id']))
                                 
                     ?>
                                 <tr>  
-                                    <td><input class="form-check-input" type="checkbox" value="<?php echo $row['ci']; ?>" name="clients[]" <?php echo $checkbox_status ?>></td>
+                                    <td><input class="form-check-input" type="checkbox" value="<?php echo $client['ci']; ?>" name="clients[]" <?php echo $checkbox_status ?>></td>
                                     <td><?php echo $client['name'] ?></td>
                                     <td><?php echo $shipment_count ?></td>
                                     <td><?php echo $client['city'] ?></td>
@@ -185,7 +205,7 @@ if (isset($_GET['id']))
             type="submit" style="font-weight:bolder;color:white;">
             Guardar</button>
             <a class="btn btn-primary mb-2"
-            href="db/finish_route.php?id=<?php echo $id ?>" style="font-weight:bolder;color:white;">
+            href="../db/finish_route.php?id=<?php echo $id ?>" style="font-weight:bolder;color:white;">
             Finalizar</a>
         </div>
         <?php } ?>

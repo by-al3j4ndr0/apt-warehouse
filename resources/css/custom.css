@@ -12,7 +12,7 @@
 #table {
   border-collapse: collapse; /* Collapse borders */
   width: 100%; /* Full-width */
-  border: 1px solid #ddd; /* Add a grey border */
+  border: 1px solid #000000; /* Add a grey border */
   font-size: 18px; /* Increase font-size */
 }
 
@@ -23,30 +23,19 @@
 
 #table tr {
   /* Add a bottom border to all table rows */
-  border-bottom: 1px solid #ddd;
+  border-top: 1px solid #000000;
 }
 
-#table tr.header, #table tr:hover {
+#table tr.header {
   /* Add a grey background color to the table header and on hover */
-  background-color: #f1f1f1;
+  background-color: #c9c9c9;
 }
 
-th {
-  position: relative;
-  padding-right: 20px;
+#table tr.address {
+  border-top: 0px solid #dadada;
 }
 
-.sort-indicator {
-  position: absolute;
-  right: 5px;
-}
-
-th.asc .sort-indicator::after {
-  content: ' ↑';
-  color: currentColor;
-}
-
-th.desc .sort-indicator::after {
-  content: ' ↓';
-  color: currentColor;
+#table tr.total-footer {
+  border-bottom: 0px solid;
+  border-collapse: collapse;
 }

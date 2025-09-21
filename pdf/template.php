@@ -122,11 +122,11 @@ function exportRoute($id) {
                             $ci = $row['ci'];
                             $tariff = 0;
                             if(in_array($ci, $clients_ci)) {
-                                $pkts_result = $conn->query("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = $ci AND `status` != 'finished'");
+                                $pkts_result = $conn->query("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = $ci AND `route_id` = $id");
                                 $pkts_row = $pkts_result->fetch_assoc();
                                 $pkts = $pkts_row['count'];
 
-                                $tariff_result = $conn->query("SELECT `tariff` FROM `shipments` WHERE `ci` = $ci AND `status` != 'finished'");
+                                $tariff_result = $conn->query("SELECT `tariff` FROM `shipments` WHERE `ci` = $ci AND `route_id` = $id");
                                 while($tariff_row = $tariff_result->fetch_assoc()){
                                     $tariff += $tariff_row['tariff'];
                                 }
@@ -154,12 +154,12 @@ function exportRoute($id) {
                         }
                     ?>
 
-                    <!-- <tr class="total-footer">
+                    <tr class="total-footer">
                         <td colspan="2"></td>
                         <td class="align-items-right">Total:</td>
                         <td><?php echo $total_pkts ?></td>
                         <td><?php echo "$" . $total_tariff ?></td>
-                    </tr> -->
+                    </tr>
                 </tbody>
             </table>
             <table>

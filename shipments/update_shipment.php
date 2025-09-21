@@ -153,7 +153,7 @@ if (isset($_GET['id']))
 
                             // 4. Prepare queries for shipment counts to reuse them
                             $warehouse_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `status` = 'warehouse'");
-                            $delivering_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `status` = 'delivering'");
+                            $delivering_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `route_id` = ?");
 
                             // 5. Process each client
                             while ($client = $client_result->fetch_assoc()) {
@@ -162,7 +162,7 @@ if (isset($_GET['id']))
                                 
                                 // Get the appropriate count based on shipment status
                                 if ($is_in_shipments) {
-                                    $delivering_stmt->bind_param("s", $client_id);
+                                    $delivering_stmt->bind_param("ss", $client_id, $id);
                                     $delivering_stmt->execute();
                                     $count_result = $delivering_stmt->get_result();
                                     $count_data = $count_result->fetch_assoc();

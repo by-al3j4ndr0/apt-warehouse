@@ -23,7 +23,7 @@
 
 #table tr {
   /* Add a bottom border to all table rows */
-  border-top: 1px solid #000000;
+  border-top: 1px solid #3b3b3b;
 }
 
 #table tr.header {
@@ -32,6 +32,10 @@
 }
 
 #table tr.address {
+  border-top: 0px solid #dadada;
+}
+
+#table tr.shipments {
   border-top: 0px solid #dadada;
 }
 

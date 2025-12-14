@@ -72,16 +72,16 @@ if (!isset($_SESSION['username'])) {
 
                 ?>
                     <tr>  
-                        <td>
+                        <td style="font-size: 15px">
                             <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $row['ci'] ?>">
                                 <?php echo $row['name'] ?>
                             </a>
                         </td>
-                        <td><?php echo $row['ci'] ?></td>
-                        <td><?php echo $row['phone'] ?></td>
-                        <td><?php echo $row['address'] ?></td> 
-                        <td><?php echo $row['city'] ?></td>
-                        <td><?php echo $row['state'] ?></td>
+                        <td style="font-size: 15px"><?php echo $row['ci'] ?></td>
+                        <td style="font-size: 15px"><?php echo $row['phone'] ?></td>
+                        <td style="font-size: 15px"><?php echo $row['address'] ?></td> 
+                        <td style="font-size: 15px"><?php echo $row['city'] ?></td>
+                        <td style="font-size: 15px"><?php echo $row['state'] ?></td>
                     </tr>
                 <?php 
                     }

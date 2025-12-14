@@ -63,6 +63,8 @@ if (!isset($_SESSION['username'])) {
                     <th scope="col" onclick="sortTable(0)">ID</th>
                     <th scope="col" onclick="sortTable(1)">Nombre</th>
                     <th scope="col" onclick="sortTable(2)">Chofer</th>
+                    <th scope="col" onclick="sortTable(2)">Arancel</th>
+                    <th scope="col" onclick="sortTable(2)">Paquetes</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,6 +87,8 @@ if (!isset($_SESSION['username'])) {
                         <td><?php echo $row['id'] ?></td>
                         <td><?php echo $row['name'] ?></td>
                         <td><?php echo $row['driver'] ?></td>
+                        <td><?php echo "$" . $row['total_tariff'] ?></td>
+                        <td><?php echo $row['total_shipments'] ?></td>
                         <td><a href="update_shipment.php?id=<?php echo $row['id'] ?>" ><i class="<?php echo $update ?>"></a></td>
                         <td><a target="_blank" href="../pdf/template.php?id=<?php echo $row['id'] ?>"><i class="fa fa-print"></a></td>
                         <td><a href="../db/delete_route.php?id=<?php echo $row['id'] ?>"><i class="<?php echo $delete ?>"></a></td>

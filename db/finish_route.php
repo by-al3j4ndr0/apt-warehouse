@@ -12,7 +12,7 @@ function finishShipment($id) {
         try {
             $clients_stmt = $conn->query("SELECT `shipments` FROM `delivery` WHERE `id` = $id;");
             $clients_array = $clients_stmt->fetch_assoc();
-            $clients_ci = explode(", ", $clients_ci);
+            $clients_ci = explode(", ", $clients_array['shipments']);
 
             $stmt = $conn->prepare("UPDATE `delivery` SET `status` = ? WHERE `id` = ?");
             $stmt->bind_param("ss", $status, $id);

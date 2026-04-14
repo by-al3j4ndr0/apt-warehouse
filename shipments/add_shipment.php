@@ -26,27 +26,7 @@ if (!isset($_SESSION['username'])) {
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-sm navbar-light bg-success">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="../clients/clients.php" style="font-weight:bold; color:white;">Clientes</a>
-            <a class="navbar-brand" href="shipments.php" style="font-weight:bold; color:white;">Rutas</a>
-            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="collapsibleNavId">
-                <ul class="navbar-nav m-auto mt-2 mt-lg-0">
-                </ul>
-                <form class="d-flex my-2 my-lg-0">
-                    <a href="../logout.php" class="btn btn-light my-2 my-sm-0"
-                      type="submit" style="font-weight:bolder;color:green;">
-                        Cerrar Sesion</a>
-                </form>
-            </div>
-        </div>
-    </nav>
+    <?php include '../header.php' ?>
 
     <div class="container p-5 d-flex flex-column align-items-left">
         <form action="../db/create_route.php" method="post">
@@ -124,7 +104,7 @@ if (!isset($_SESSION['username'])) {
                     <?php
                         include '../db/db_connect.php';
 
-                        $client_stmt = $conn->prepare("SELECT * FROM `clients` ORDER BY `city` ASC");
+                        $client_stmt = $conn->prepare("SELECT * FROM `clients` ORDER BY `state` ASC");
                         $client_stmt->execute();
                         $client_result = $client_stmt->get_result();
 

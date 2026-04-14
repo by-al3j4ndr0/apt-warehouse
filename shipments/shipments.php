@@ -26,27 +26,7 @@ if (!isset($_SESSION['username'])) {
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-sm navbar-light bg-success">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="../clients/clients.php" style="font-weight:bold; color:white;">Clientes</a>
-            <a class="navbar-brand" href="#" style="font-weight:bold; color:white;">Rutas</a>
-            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="collapsibleNavId">
-                <ul class="navbar-nav m-auto mt-2 mt-lg-0">
-                </ul>
-                <form class="d-flex my-2 my-lg-0">
-                    <a href="../logout.php" class="btn btn-light my-2 my-sm-0"
-                      type="submit" style="font-weight:bolder;color:green;">
-                        Cerrar Sesion</a>
-                </form>
-            </div>
-        </div>
-    </nav>
+    <?php include '../header.php' ?>
 
     <div class="container p-3 d-flex flex-column align-items-center">  
         <form class="d-flex my-2 my-lg-0">
@@ -62,6 +42,7 @@ if (!isset($_SESSION['username'])) {
                 <tr class="header">
                     <th scope="col" onclick="sortTable(0)">ID</th>
                     <th scope="col" onclick="sortTable(1)">Nombre</th>
+                    <th scope="col" >Origen</th>
                     <th scope="col" onclick="sortTable(2)">Chofer</th>
                     <th scope="col" onclick="sortTable(2)">Arancel</th>
                     <th scope="col" onclick="sortTable(2)">Paquetes</th>
@@ -86,6 +67,7 @@ if (!isset($_SESSION['username'])) {
                     <tr>  
                         <td><?php echo $row['id'] ?></td>
                         <td><?php echo $row['name'] ?></td>
+                        <td><?php echo $row['orgien'] ?></td>
                         <td><?php echo $row['driver'] ?></td>
                         <td><?php echo "$" . $row['total_tariff'] ?></td>
                         <td><?php echo $row['total_shipments'] ?></td>

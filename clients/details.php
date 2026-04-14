@@ -92,27 +92,7 @@ function getClientShipments($ci) {
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-sm navbar-light bg-success">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="../clients/clients.php" style="font-weight:bold; color:white;">Clientes</a>
-            <a class="navbar-brand" href="../shipments/shipments.php" style="font-weight:bold; color:white;">Rutas</a>
-            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="collapsibleNavId">
-                <ul class="navbar-nav m-auto mt-2 mt-lg-0">
-                </ul>
-                <form class="d-flex my-2 my-lg-0">
-                    <a href="../logout.php" class="btn btn-light my-2 my-sm-0"
-                      type="submit" style="font-weight:bolder;color:green;">
-                        Cerrar Sesion</a>
-                </form>
-            </div>
-        </div>
-    </nav>
+    <?php include '../header.php' ?>
 
     <div class="row">
         <div class="col container p-5 align-items-left">
@@ -130,7 +110,8 @@ function getClientShipments($ci) {
             <div class ="row flex">
                 <h5><label class="">Direccion: <?php echo $client_address . ", " . $client_city . ", " . $client_state ?></label></h5>
             </div>
-            <div class="row align-items-right">
+            <div class="row">
+                <a class="btn btn-dark" href="./edit_client.php?ci=<?php echo $ci ?>">Editar Cliente</a>
             </div>
         </div>
         <div class="col container p-5 align-items-left">

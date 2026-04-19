@@ -17,8 +17,6 @@ if (!isset($_SESSION['username'])) {
     <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
     <link rel="stylesheet" href="../resources/css/font-awesome.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
-    <script src="../resources/js/bootstrap.bundle.min.js"></script>
-    <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport"
   content="width=device-width, initial-scale=1.0">
@@ -28,17 +26,30 @@ if (!isset($_SESSION['username'])) {
 <body>
     <?php include '../header.php' ?>
 
-    <div class="container p-5 d-flex flex-column align-items-left">
+    <div class="p-5 flex-column align-items-center">
         <form action="../db/create_route.php" method="post">
             <div class="form-control">
-                <div class="row">
+                <div class="row p-2">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="draft" id="draft" autocomplete="off" checked>
+                        <label class="btn btn-outline-warning" for="draft">Borrador</label>
+
+                        <input type="radio" class="btn-check" name="delivering" id="delivering" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="delivering">Entregando</label>
+
+                        <input type="radio" class="btn-check" name="finished" id="finished" autocomplete="off">
+                        <label class="btn btn-outline-success" for="finished">Terminada</label>
+                    </div>
+                </div>
+                <div class="row p-2">
                     <div class="col">
                         <label for="formGroupExampleInput">Nombre</label>  
-                        <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00" autocomple="nope">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00" autocomple="off">
                     </div>
                     <div class="col">
-                        <label for="formGroupExampleInput">Origen</label>  
-                         <select id="origen" class="form-control" name="origen">
+                        <label for="formGroupExampleInput">Origen</label>
+                        <select id="origen" class="form-control" name="origen">
+                            <option id="default">Seleccione...</option>
                             <?php
                                 include '../db/db_connect.php';
 
@@ -52,10 +63,11 @@ if (!isset($_SESSION['username'])) {
                         </select>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row p-2">
                     <div class="col">
                         <label for="formGroupExampleInput">Chofer</label> 
                         <select id="driver" class="form-control" name="driver">
+                            <option id="default">Seleccione...</option>
                             <?php
                                 include '../db/db_connect.php';
 
@@ -71,6 +83,7 @@ if (!isset($_SESSION['username'])) {
                     <div class="col">
                         <label for="formGroupExampleInput">Vehiculo</label> 
                         <select id="vehicule" class="form-control" name="vehicule">
+                            <option id="default">Seleccione...</option>
                             <?php
                                 include '../db/db_connect.php';
 
@@ -85,7 +98,6 @@ if (!isset($_SESSION['username'])) {
                     </div>
                 </div>
             </div>
-  
     </div>
     <div class="d-flex flex-column align-items-left">
         <div class="form-control">
@@ -143,5 +155,8 @@ if (!isset($_SESSION['username'])) {
         </div>
         </form>
     </div>
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <script src="../resources/js/custom.js"></script>
+    <script src="../resources/js/delivery.js"></script>
 </body>
 </html>

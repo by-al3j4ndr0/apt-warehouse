@@ -1,0 +1,230 @@
+<?php
+session_start();
+
+// Verificar sesión
+if (!isset($_SESSION['username'])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+// Validar y obtener el modelo
+$model = isset($_GET['model']) ? $_GET['model'] : '';
+
+// Inicializar variables globales
+$origen_stmt = null;
+$drivers_stmt = null;
+$vehicule_stmt = null;
+
+// Ejecutar según el modelo
+switch ($model) {
+    case 'new_delivery':
+        get_global_info();
+        break;
+    default:
+        // Si no hay modelo válido, mostrar error o redirigir
+        $_SESSION['error_message'] = "Modelo no especificado o inválido";
+        break;
+}
+
+// Funciones
+function get_global_info() {
+    include '../api/db_connect.php';
+    
+    global $origen_stmt, $drivers_stmt, $vehicule_stmt;
+    
+    try {
+        $origen_stmt = $conn->query("SELECT * FROM `origen`");
+        $drivers_stmt = $conn->query("SELECT * FROM `drivers`");
+        $vehicule_stmt = $conn->query("SELECT * FROM `vehicules`");
+        
+        if (!$origen_stmt || !$drivers_stmt || !$vehicule_stmt) {
+            throw new Exception("Error al cargar los datos");
+        }
+    } catch (Exception $e) {
+        $_SESSION['error_message'] = $e->getMessage();
+        error_log("Error en get_global_info: " . $e->getMessage());
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../resources/css/font-awesome.css">
+    <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Ruta</title>
+    <style>
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+        .form-control:focus {
+            box-shadow: none;
+        }
+        .btn-group .btn-check:checked + .btn {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <?php include '../header.php'; ?>
+
+    <div class="p-5 flex-column align-items-center">
+        <!-- Mensajes de error/success -->
+        <?php if (isset($_SESSION['error_message']) && !empty($_SESSION['error_message'])): ?>
+            <div class="toast align-items-center text-white bg-danger border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <?php 
+                            echo htmlspecialchars($_SESSION['error_message']);
+                            unset($_SESSION['error_message']); // Limpiar después de mostrar
+                        ?>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isset($_SESSION['success_message']) && !empty($_SESSION['success_message'])): ?>
+            <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <?php 
+                            echo htmlspecialchars($_SESSION['success_message']);
+                            unset($_SESSION['success_message']);
+                        ?>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+        <form action="../api/createRoute.php" method="post">
+            <div class="form-control">
+                <div class="row p-2">
+                    <div class="btn-group" role="group">
+                        <!-- Corregido: IDs únicos y names correctos -->
+                        <input type="radio" class="btn-check" name="status" id="status_draft" value="draft" autocomplete="off" checked>
+                        <label class="btn btn-outline-warning" for="status_draft">Borrador</label>
+
+                        <input type="radio" class="btn-check" name="status" id="status_delivering" value="delivering" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="status_delivering">Entregando</label>
+
+                        <input type="radio" class="btn-check" name="status" id="status_finished" value="finished" autocomplete="off">
+                        <label class="btn btn-outline-success" for="status_finished">Terminada</label>
+                    </div>
+                </div>
+                
+                <div class="row p-2">
+                    <div class="col">
+                        <label for="name" class="form-label">Nombre</label>  
+                        <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00" autocomplete="off" required>
+                    </div>
+                    <div class="col">
+                        <label for="origen" class="form-label">Origen</label>
+                        <select id="origen" class="form-control" name="origen" required>
+                            <option value="">Seleccione...</option>
+                            <?php if (isset($origen_stmt) && $origen_stmt): ?>
+                                <?php while($origen = $origen_stmt->fetch_assoc()): ?>
+                                    <option value="<?php echo htmlspecialchars($origen['id']); ?>">
+                                        <?php echo htmlspecialchars($origen['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row p-2">
+                    <div class="col">
+                        <label for="driver" class="form-label">Chofer</label> 
+                        <select id="driver" class="form-control" name="driver" required>
+                            <option value="">Seleccione...</option>
+                            <?php if (isset($drivers_stmt) && $drivers_stmt): ?>
+                                <?php while($drivers = $drivers_stmt->fetch_assoc()): ?>
+                                    <option value="<?php echo htmlspecialchars($drivers['id']); ?>">
+                                        <?php echo htmlspecialchars($drivers['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="vehicule" class="form-label">Vehículo</label> 
+                        <select id="vehicule" class="form-control" name="vehicule" required>
+                            <option value="">Seleccione...</option>
+                            <?php if (isset($vehicule_stmt) && $vehicule_stmt): ?>
+                                <?php while($vehicule = $vehicule_stmt->fetch_assoc()): ?>
+                                    <option value="<?php echo htmlspecialchars($vehicule['id']); ?>">
+                                        <?php echo htmlspecialchars($vehicule['matriculate']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex flex-column align-items-left">
+                <div id="tableDiv">
+                    <!-- Aquí se cargará dinámicamente la tabla de productos/entregas -->
+                </div>
+                <div class="container p-5 d-flex flex-column align-items-right">
+                    <button class="btn btn-primary mb-2" type="submit" style="font-weight:bolder;color:white;">
+                        Guardar Ruta
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <script src="../resources/js/custom.js"></script>
+    <script src="../resources/js/delivery.js"></script>
+    
+    <script>
+        // Auto-cerrar toasts después de 5 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000);
+            });
+            
+            // Validación del formulario antes de enviar
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const name = document.getElementById('name').value;
+                    const origen = document.getElementById('origen').value;
+                    const driver = document.getElementById('driver').value;
+                    const vehicule = document.getElementById('vehicule').value;
+                    
+                    if (!name || !origen || !driver || !vehicule) {
+                        e.preventDefault();
+                        alert('Por favor, complete todos los campos obligatorios');
+                        return false;
+                    }
+                    
+                    if (name && !/^\([A-Z]{3}-\d{2}\) \d{2}\/\d{2}$/.test(name)) {
+                        e.preventDefault();
+                        alert('El formato del nombre debe ser (XXX-00) 00/00');
+                        return false;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

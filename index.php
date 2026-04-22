@@ -29,7 +29,7 @@ if (!isset($_SESSION['username'])) {
         <div class="container">
             <a class="navbar-brand" href="#" style="font-weight:bold; color:white;">Inicio</a>
             <a class="navbar-brand" href="clients/clients.php" style="font-weight:bold; color:white;">Clientes</a>
-            <a class="navbar-brand" href="shipments/shipments.php" style="font-weight:bold; color:white;">Rutas</a>
+            <a class="navbar-brand" href="delivery/deliveries.php" style="font-weight:bold; color:white;">Rutas</a>
             <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
                 aria-label="Toggle navigation">

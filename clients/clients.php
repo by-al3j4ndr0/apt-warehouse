@@ -28,7 +28,7 @@ if (!isset($_SESSION['username'])) {
 <body>
     <?php include '../header.php' ?>
 
-    <div class="container p-5 d-flex flex-column align-items-left">
+    <div class="container p-3 d-flex flex-column">
         <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por nombre..">
         <table class="table table-light" id="table">
             <thead>
@@ -44,7 +44,7 @@ if (!isset($_SESSION['username'])) {
             <tbody>
                 <?php
 
-                    include '../db/db_connect.php';
+                    include '../api/db_connect.php';
 
                     $stmt = $conn->query("SELECT * FROM `clients`");
 

@@ -30,7 +30,7 @@ if (!isset($_SESSION['username'])) {
 
     <div class="container p-3 d-flex flex-column align-items-center">  
         <form class="d-flex my-2 my-lg-0">
-            <a href="add_shipment.php" class="btn btn-light my-2 my-sm-0"
+            <a href="manage_delivery.php?model=new_delivery" class="btn btn-light my-2 my-sm-0"
             type="submit" style="font-weight:bolder;color:green;">
             Adicionar Ruta</a>
         </form>
@@ -51,7 +51,7 @@ if (!isset($_SESSION['username'])) {
             <tbody>
                 <?php
 
-                    include '../db/db_connect.php';
+                    include '../api/db_connect.php';
 
                     $stmt = $conn->query("SELECT * FROM `delivery` ORDER BY `id` desc");
 
@@ -67,13 +67,13 @@ if (!isset($_SESSION['username'])) {
                     <tr>  
                         <td><?php echo $row['id'] ?></td>
                         <td><?php echo $row['name'] ?></td>
-                        <td><?php echo $row['orgien'] ?></td>
+                        <td><?php echo $row['origen'] ?></td>
                         <td><?php echo $row['driver'] ?></td>
                         <td><?php echo "$" . $row['total_tariff'] ?></td>
                         <td><?php echo $row['total_shipments'] ?></td>
                         <td><a href="update_shipment.php?id=<?php echo $row['id'] ?>" ><i class="<?php echo $update ?>"></a></td>
                         <td><a target="_blank" href="../pdf/template.php?id=<?php echo $row['id'] ?>"><i class="fa fa-print"></a></td>
-                        <td><a href="../db/delete_route.php?id=<?php echo $row['id'] ?>"><i class="<?php echo $delete ?>"></a></td>
+                        <td><a href="../api/delete_route.php?id=<?php echo $row['id'] ?>"><i class="<?php echo $delete ?>"></a></td>
                     </tr>
                 <?php 
                     }   

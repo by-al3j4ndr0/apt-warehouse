@@ -4,7 +4,7 @@
 ?>
 <?php
 function deleteShipment($id) {
-    include '../db/db_connect.php';
+    include '../api/db_connect.php';
         
     $status = 'warehouse';
     
@@ -21,7 +21,7 @@ function deleteShipment($id) {
         echo $e;
     }
         
-    header("Location: ../shipments/shipments.php");
+    header("Location: ../delivery/deliveries.php");
 }
 
 ?>

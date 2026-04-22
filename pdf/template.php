@@ -14,7 +14,7 @@ if (isset($_GET['id']))
 
 function exportRoute($id) {
 
-    include('../db/db_connect.php');
+    include('../api/db_connect.php');
 
     try {
         $stmt = $conn->query("SELECT * FROM `delivery` WHERE `id` = $id");

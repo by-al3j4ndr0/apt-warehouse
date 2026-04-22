@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $driver = trim($_POST['driver']);
     $vehicule = trim($_POST['vehicule']);
     $origen = trim($_POST['origen']);
-    $status = 'delivering';
+    $status = trim($_POST['status']);
     $clients = implode(', ', array_map('trim', $_POST['clients']));
 
     try {
@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 `vehicule`, 
                                 `status`, 
                                 `shipments`,
-                                `orgien`
+                                `origen`
                             ) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("ssssss", $name, $driver, $vehicule, $status, $clients, $origen);
         $stmt->execute();
@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->commit();
 
         $_SESSION['success_message'] = "Delivery route created successfully!";
-        header("Location: ../shipments/shipments.php");
+        header("Location: ../delivery/deliveries.php");
         exit();
 
     } catch (Exception $e) {

@@ -55,7 +55,7 @@ function newDelivery() {
 
     global $formActionHref;
     global $deliveryId, $deliveryName, $origenId, $driverId, $vehiculeId;
-    global $page_tittle, $draft_state, $finished_state, $origen_state;
+    global $page_tittle, $draft_state, $finished_state, $origen_state, $input_delivering_state;
 
     get_global_info();
     $page_tittle = "Nueva Ruta";
@@ -68,6 +68,7 @@ function newDelivery() {
     $driverId = 0;
     $vehiculeId = 0;
     $origen_state = "";
+    $input_delivering_state = '';
 }
 
 function updateDelivery(int $delivery_id) {
@@ -77,7 +78,7 @@ function updateDelivery(int $delivery_id) {
 
     global $page_tittle;
     global $formActionHref;
-    global $draft_state, $finished_state, $origen_state;
+    global $draft_state, $finished_state, $origen_state, $delivering_state, $input_delivering_state;
     global $deliveryId, $deliveryName, $origenId, $driverId, $vehiculeId;
 
     $page_tittle = "Modificar Ruta";
@@ -90,11 +91,22 @@ function updateDelivery(int $delivery_id) {
         $draft_state = "checked";
         $finished_state = "disabled";
         $origen_state = 'readonly="true"';
+        $input_delivering_state = '';
         $deliveryName = $delivery_data['name'];
         $origenId = $delivery_data['origen'];
         $driverId = $delivery_data['driver'];
         $vehiculeId = $delivery_data['vehicule'];
-    } 
+    } else if($delivery_data['status'] == 'delivering') {
+        get_global_info();
+        $draft_state = "disabled";
+        $delivering_state = "checked";
+        $origen_state = 'readonly="true"';
+        $input_delivering_state = 'readonly="true"';
+        $deliveryName = $delivery_data['name'];
+        $origenId = $delivery_data['origen'];
+        $driverId = $delivery_data['driver'];
+        $vehiculeId = $delivery_data['vehicule'];
+    }
 }
 ?>
 
@@ -168,7 +180,7 @@ function updateDelivery(int $delivery_id) {
                         <input type="radio" class="btn-check" name="status" id="status_draft" value="draft" autocomplete="off" <?php echo $draft_state ?>>
                         <label class="btn btn-outline-warning" for="status_draft">Borrador</label>
 
-                        <input type="radio" class="btn-check" name="status" id="status_delivering" value="delivering" autocomplete="off">
+                        <input type="radio" class="btn-check" name="status" id="status_delivering" value="delivering" autocomplete="off" <?php echo $delivering_state ?>>
                         <label class="btn btn-outline-primary" for="status_delivering">Entregando</label>
 
                         <input type="radio" class="btn-check" name="status" id="status_finished" value="finished" autocomplete="off" <?php echo $finished_state ?>>
@@ -179,7 +191,7 @@ function updateDelivery(int $delivery_id) {
                 <div class="row p-2">
                     <div class="col">
                         <label for="name" class="form-label">Nombre</label>  
-                        <input type="text" class="form-control" id="name" name="name" value="<?php echo $deliveryName ?>" placeholder="(XXX-00) 00/00" autocomplete="off" required>
+                        <input type="text" class="form-control" id="name" name="name" value="<?php echo $deliveryName ?>" placeholder="(XXX-00) 00/00" autocomplete="off" required <?php echo $input_delivering_state ?>>
                     </div>
                     <div class="col">
                         <label for="origen" class="form-label">Origen</label>
@@ -203,7 +215,7 @@ function updateDelivery(int $delivery_id) {
                 <div class="row p-2">
                     <div class="col">
                         <label for="driver" class="form-label">Chofer</label> 
-                        <select id="driver" class="form-control" name="driver" required>
+                        <select id="driver" class="form-control" name="driver" required <?php echo $input_delivering_state ?>>
                             <option name="default_driver" value="">Seleccione...</option>
                             <?php if (isset($drivers_stmt) && $drivers_stmt): ?>
                                 <?php while($drivers = $drivers_stmt->fetch_assoc()): ?>
@@ -220,7 +232,7 @@ function updateDelivery(int $delivery_id) {
                     </div>
                     <div class="col">
                         <label for="vehicule" class="form-label">Vehículo</label> 
-                        <select id="vehicule" class="form-control" name="vehicule" required>
+                        <select id="vehicule" class="form-control" name="vehicule" required <?php echo $input_delivering_state ?>>
                             <option name="default_vehicule" value="">Seleccione...</option>
                             <?php if (isset($vehicule_stmt) && $vehicule_stmt): ?>
                                 <?php while($vehicule = $vehicule_stmt->fetch_assoc()): ?>

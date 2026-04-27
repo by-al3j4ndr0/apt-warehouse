@@ -64,13 +64,14 @@ if (!isset($_SESSION['username'])) {
             Adicionar Ruta</a>
         </form>
     </div>
-    <div class="container p-5 d-flex flex-column align-items-left">  
+    <div class="p-5 d-flex flex-column align-items-left">  
         <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por ID..">
         <table class="table table-light" id="table">
             <thead>
                 <tr class="header">
                     <th scope="col">ID</th>
                     <th scope="col">Nombre</th>
+                    <th scope="col">Estado</th>
                     <th scope="col">Origen</th>
                     <th scope="col">Chofer</th>
                     <th scope="col">Arancel</th>
@@ -90,14 +91,21 @@ if (!isset($_SESSION['username'])) {
                         if ($delivery['status'] == 'finished') {
                             $update = "";
                             $delete = "";
-                        } else {
+                            $status = '<td style="color: #198754">TERMINADA</td>';
+                        } else if($delivery['status'] == 'delivering'){
+                            $update = "fa fa-edit";
+                            $delete = "";
+                            $status = '<td style="color: #0d6efd">ENTREGANDO</td>';
+                        } else if($delivery['status'] == 'draft') {
                             $update = "fa fa-edit";
                             $delete = "fa fa-trash";
+                            $status = '<td style="color: #ffc107;">BORRADOR</td>';
                         }
                 ?>
                     <tr>  
                         <td><?php echo $delivery['id'] ?></td>
                         <td><?php echo $delivery['name'] ?></td>
+                        <?php echo $status ?>
                         <td><?php echo getInfoById($delivery['origen'], 'origen')['name'] ?></td>
                         <td><?php echo getInfoById($delivery['driver'], 'driver')['name']?></td>
                         <td><?php echo "$" . $delivery['total_tariff'] ?></td>

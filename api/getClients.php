@@ -29,10 +29,10 @@
 
     try {
         header('Content-Type: application/json');
-        
-        if($status != "draft") {
-            throw new Exception("Invalid status");
-        }
+
+    if($status == 'delivering') {
+        $warehouse_status = 'delivering';
+    }
         
         if($delivery_id == 0) {
             // Query simple para delivery_id == 0
@@ -86,5 +86,5 @@
     }
 
     $conn->close();
-    
+
 ?>

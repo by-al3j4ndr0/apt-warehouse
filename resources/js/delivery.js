@@ -31,6 +31,7 @@ function getClientsByOrigen() {
     // Obtener el valor (ID) del option seleccionado
     let origen = origenMenu.value; // Usar value en lugar de id
     let status = selectedStatus.value;
+    console.log(status);
     let deliveryId = deliveryIdInput.value;
     
     // Enviar como JSON o como form data

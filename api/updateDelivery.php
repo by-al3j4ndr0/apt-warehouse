@@ -141,17 +141,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $types = str_repeat('s', count($clients_to_keep));
             
             $stmt = $conn->prepare("UPDATE `shipments` 
-                                  SET `status` = ?, `route_id` = ? 
+                                  SET `status` = ? 
                                   WHERE `ci` IN ($placeholders) 
-                                  AND `status` = 'warehouse' 
+                                  AND `route_id` = ? 
                                   AND `origen` = ?");
             
             if (!$stmt) {
                 throw new Exception("Prepare failed for keep: " . $conn->error);
             }
             
-            $params = array_merge([$status, $id], $clients_to_keep, [$origen]);
-            $stmt->bind_param('si' . $types . 'i', ...$params);
+            $params = array_merge([$status], $clients_to_keep, [$id, $origen]);
+            $stmt->bind_param('s' . $types . 'ii', ...$params);
             
             if (!$stmt->execute()) {
                 throw new Exception("Execute failed for keep: " . $stmt->error);

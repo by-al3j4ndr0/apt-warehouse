@@ -18,7 +18,12 @@ $vehicule_stmt = null;
 // Ejecutar según el modelo
 switch ($model) {
     case 'new_delivery':
-        get_global_info();
+        newDelivery();
+        break;
+    case 'update_delivery':
+        if(isset($_GET['id'])) {
+            updateDelivery($_GET['id']);
+        }
         break;
     default:
         // Si no hay modelo válido, mostrar error o redirigir
@@ -45,6 +50,52 @@ function get_global_info() {
         error_log("Error en get_global_info: " . $e->getMessage());
     }
 }
+
+function newDelivery() {
+
+    global $formActionHref;
+    global $deliveryId, $deliveryName, $origenId, $driverId, $vehiculeId;
+    global $page_tittle, $draft_state, $finished_state, $origen_state;
+
+    get_global_info();
+    $page_tittle = "Nueva Ruta";
+    $formActionHref = "../api/createDelivery.php";
+    $deliveryId = "0";
+    $draft_state = "checked";
+    $finished_state = "disabled";
+    $deliveryName = "";
+    $origenId = 0;
+    $driverId = 0;
+    $vehiculeId = 0;
+    $origen_state = "";
+}
+
+function updateDelivery(int $delivery_id) {
+
+    include '../api/getDeliveryInfo.php';
+    include '../api/getInfoById.php';
+
+    global $page_tittle;
+    global $formActionHref;
+    global $draft_state, $finished_state, $origen_state;
+    global $deliveryId, $deliveryName, $origenId, $driverId, $vehiculeId;
+
+    $page_tittle = "Modificar Ruta";
+    $formActionHref = "../api/updateDelivery.php";
+    $delivery_data = getDeliveryInfo($delivery_id);
+    $deliveryId = $delivery_id;  
+
+    if($delivery_data['status'] == 'draft') {
+        get_global_info();
+        $draft_state = "checked";
+        $finished_state = "disabled";
+        $origen_state = 'readonly="true"';
+        $deliveryName = $delivery_data['name'];
+        $origenId = $delivery_data['origen'];
+        $driverId = $delivery_data['driver'];
+        $vehiculeId = $delivery_data['vehicule'];
+    } 
+}
 ?>
 
 <!DOCTYPE html>
@@ -57,7 +108,7 @@ function get_global_info() {
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva Ruta</title>
+    <title><?php echo $page_tittle ?></title>
     <style>
         .toast {
             position: fixed;
@@ -108,18 +159,19 @@ function get_global_info() {
             </div>
         <?php endif; ?>
         
-        <form action="../api/createRoute.php" method="post">
+        <form action="<?php echo $formActionHref ?>" method="post">
+            <input type="hidden" id="deliveryId" name="deliveryId" value="<?php echo $deliveryId ?>">
             <div class="form-control">
                 <div class="row p-2">
                     <div class="btn-group" role="group">
                         <!-- Corregido: IDs únicos y names correctos -->
-                        <input type="radio" class="btn-check" name="status" id="status_draft" value="draft" autocomplete="off" checked>
+                        <input type="radio" class="btn-check" name="status" id="status_draft" value="draft" autocomplete="off" <?php echo $draft_state ?>>
                         <label class="btn btn-outline-warning" for="status_draft">Borrador</label>
 
                         <input type="radio" class="btn-check" name="status" id="status_delivering" value="delivering" autocomplete="off">
                         <label class="btn btn-outline-primary" for="status_delivering">Entregando</label>
 
-                        <input type="radio" class="btn-check" name="status" id="status_finished" value="finished" autocomplete="off">
+                        <input type="radio" class="btn-check" name="status" id="status_finished" value="finished" autocomplete="off" <?php echo $finished_state ?>>
                         <label class="btn btn-outline-success" for="status_finished">Terminada</label>
                     </div>
                 </div>
@@ -127,15 +179,19 @@ function get_global_info() {
                 <div class="row p-2">
                     <div class="col">
                         <label for="name" class="form-label">Nombre</label>  
-                        <input type="text" class="form-control" id="name" name="name" placeholder="(XXX-00) 00/00" autocomplete="off" required>
+                        <input type="text" class="form-control" id="name" name="name" value="<?php echo $deliveryName ?>" placeholder="(XXX-00) 00/00" autocomplete="off" required>
                     </div>
                     <div class="col">
                         <label for="origen" class="form-label">Origen</label>
-                        <select id="origen" class="form-control" name="origen" required>
-                            <option value="">Seleccione...</option>
+                        <select id="origen" class="form-control" name="origen" <?php echo $origen_state ?> required>
+                            <option name="default_origen" value="">Seleccione...</option>
                             <?php if (isset($origen_stmt) && $origen_stmt): ?>
                                 <?php while($origen = $origen_stmt->fetch_assoc()): ?>
-                                    <option value="<?php echo htmlspecialchars($origen['id']); ?>">
+                                    <option value="<?php echo htmlspecialchars($origen['id']); ?>"
+                                    <?php if($origen['id'] == $origenId) {
+                                            echo "selected";
+                                        }
+                                    ?>>
                                         <?php echo htmlspecialchars($origen['name']); ?>
                                     </option>
                                 <?php endwhile; ?>
@@ -148,10 +204,14 @@ function get_global_info() {
                     <div class="col">
                         <label for="driver" class="form-label">Chofer</label> 
                         <select id="driver" class="form-control" name="driver" required>
-                            <option value="">Seleccione...</option>
+                            <option name="default_driver" value="">Seleccione...</option>
                             <?php if (isset($drivers_stmt) && $drivers_stmt): ?>
                                 <?php while($drivers = $drivers_stmt->fetch_assoc()): ?>
-                                    <option value="<?php echo htmlspecialchars($drivers['id']); ?>">
+                                    <option value="<?php echo htmlspecialchars($drivers['id']); ?>"
+                                    <?php if($drivers['id'] == $driverId) {
+                                            echo "selected";
+                                        }
+                                    ?>>
                                         <?php echo htmlspecialchars($drivers['name']); ?>
                                     </option>
                                 <?php endwhile; ?>
@@ -161,10 +221,14 @@ function get_global_info() {
                     <div class="col">
                         <label for="vehicule" class="form-label">Vehículo</label> 
                         <select id="vehicule" class="form-control" name="vehicule" required>
-                            <option value="">Seleccione...</option>
+                            <option name="default_vehicule" value="">Seleccione...</option>
                             <?php if (isset($vehicule_stmt) && $vehicule_stmt): ?>
                                 <?php while($vehicule = $vehicule_stmt->fetch_assoc()): ?>
-                                    <option value="<?php echo htmlspecialchars($vehicule['id']); ?>">
+                                    <option value="<?php echo htmlspecialchars($vehicule['id']); ?>"
+                                    <?php if($vehicule['id'] == $vehiculeId) {
+                                            echo "selected";
+                                        }
+                                    ?>>
                                         <?php echo htmlspecialchars($vehicule['matriculate']); ?>
                                     </option>
                                 <?php endwhile; ?>

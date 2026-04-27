@@ -28,17 +28,15 @@ if (!isset($_SESSION['username'])) {
 <body>
     <?php include '../header.php' ?>
 
-    <div class="container p-3 d-flex flex-column">
-        <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por nombre..">
-        <table class="table table-light" id="table">
-            <thead>
-                <tr class="header">
-                    <th scope="col" onclick="sortTable(0)">Nombre</th>
-                    <th scope="col" onclick="sortTable(1)">CI</th>
-                    <th scope="col" onclick="sortTable(2)">Telefono</th>
-                    <th scope="col" onclick="sortTable(3)">Direccion</th>
-                    <th scope="col" onclick="sortTable(4)">Municipio</th>
-                    <th scope="col" onclick="sortTable(5)">Provincia</th>
+    <div class="p-3 d-flex flex-column">
+        <input type="text" id="search_input" onkeyup="searchGClientsTable()" placeholder="Buscar por nombre..">
+        <table class="table table-bordered table-hover" id="clientsTable">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">CI</th>
+                    <th scope="col">Municipio</th>
+                    <th scope="col">Provincia</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,22 +44,20 @@ if (!isset($_SESSION['username'])) {
 
                     include '../api/db_connect.php';
 
-                    $stmt = $conn->query("SELECT * FROM `clients`");
+                    $clientsList_stmt = $conn->query("SELECT * FROM `clients` ORDER BY `name`");
 
-                    while ($row = $stmt->fetch_assoc()) {
+                    while ($generalClient = $clientsList_stmt->fetch_assoc()) {
 
                 ?>
                     <tr>  
                         <td style="font-size: 15px">
-                            <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $row['ci'] ?>">
-                                <?php echo $row['name'] ?>
+                            <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $generalClient['ci'] ?>">
+                                <?php echo $generalClient['name'] ?>
                             </a>
                         </td>
-                        <td style="font-size: 15px"><?php echo $row['ci'] ?></td>
-                        <td style="font-size: 15px"><?php echo $row['phone'] ?></td>
-                        <td style="font-size: 15px"><?php echo $row['address'] ?></td> 
-                        <td style="font-size: 15px"><?php echo $row['city'] ?></td>
-                        <td style="font-size: 15px"><?php echo $row['state'] ?></td>
+                        <td style="font-size: 15px"><?php echo $generalClient['ci'] ?></td>
+                        <td style="font-size: 15px"><?php echo $generalClient['city'] ?></td>
+                        <td style="font-size: 15px"><?php echo $generalClient['state'] ?></td>
                     </tr>
                 <?php 
                     }

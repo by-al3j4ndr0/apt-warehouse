@@ -27,8 +27,37 @@ if (!isset($_SESSION['username'])) {
 
 <body>
     <?php include '../header.php' ?>
+    <div class="container p-3 d-flex flex-column align-items-center">
+        <?php if (isset($_SESSION['error_message']) && !empty($_SESSION['error_message'])): ?>
+            <div class="toast align-items-center text-white bg-danger border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <?php 
+                            echo htmlspecialchars($_SESSION['error_message']);
+                            unset($_SESSION['error_message']); // Limpiar después de mostrar
+                        ?>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isset($_SESSION['success_message']) && !empty($_SESSION['success_message'])): ?>
+            <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <?php 
+                            echo htmlspecialchars($_SESSION['success_message']);
+                            unset($_SESSION['success_message']);
+                        ?>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
 
-    <div class="container p-3 d-flex flex-column align-items-center">  
+    <div class="container p-3 d-flex flex-column align-items-center">
         <form class="d-flex my-2 my-lg-0">
             <a href="manage_delivery.php?model=new_delivery" class="btn btn-light my-2 my-sm-0"
             type="submit" style="font-weight:bolder;color:green;">
@@ -40,23 +69,25 @@ if (!isset($_SESSION['username'])) {
         <table class="table table-light" id="table">
             <thead>
                 <tr class="header">
-                    <th scope="col" onclick="sortTable(0)">ID</th>
-                    <th scope="col" onclick="sortTable(1)">Nombre</th>
-                    <th scope="col" >Origen</th>
-                    <th scope="col" onclick="sortTable(2)">Chofer</th>
-                    <th scope="col" onclick="sortTable(2)">Arancel</th>
-                    <th scope="col" onclick="sortTable(2)">Paquetes</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Origen</th>
+                    <th scope="col">Chofer</th>
+                    <th scope="col">Arancel</th>
+                    <th scope="col">Paquetes</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
 
                     include '../api/db_connect.php';
+                    include '../api/getInfoById.php';
 
-                    $stmt = $conn->query("SELECT * FROM `delivery` ORDER BY `id` desc");
+                    $deliveries_stmt = $conn->query("SELECT * FROM `delivery` WHERE `id` > '760' ORDER BY `id` desc");
 
-                    while ($row = $stmt->fetch_assoc()) {
-                        if ($row['status'] == 'finished') {
+                    while ($delivery = $deliveries_stmt->fetch_assoc()) {
+
+                        if ($delivery['status'] == 'finished') {
                             $update = "";
                             $delete = "";
                         } else {
@@ -65,15 +96,15 @@ if (!isset($_SESSION['username'])) {
                         }
                 ?>
                     <tr>  
-                        <td><?php echo $row['id'] ?></td>
-                        <td><?php echo $row['name'] ?></td>
-                        <td><?php echo $row['origen'] ?></td>
-                        <td><?php echo $row['driver'] ?></td>
-                        <td><?php echo "$" . $row['total_tariff'] ?></td>
-                        <td><?php echo $row['total_shipments'] ?></td>
-                        <td><a href="update_shipment.php?id=<?php echo $row['id'] ?>" ><i class="<?php echo $update ?>"></a></td>
-                        <td><a target="_blank" href="../pdf/template.php?id=<?php echo $row['id'] ?>"><i class="fa fa-print"></a></td>
-                        <td><a href="../api/delete_route.php?id=<?php echo $row['id'] ?>"><i class="<?php echo $delete ?>"></a></td>
+                        <td><?php echo $delivery['id'] ?></td>
+                        <td><?php echo $delivery['name'] ?></td>
+                        <td><?php echo getInfoById($delivery['origen'], 'origen')['name'] ?></td>
+                        <td><?php echo getInfoById($delivery['driver'], 'driver')['name']?></td>
+                        <td><?php echo "$" . $delivery['total_tariff'] ?></td>
+                        <td><?php echo $delivery['total_shipments'] ?></td>
+                        <td><a href="manage_delivery.php?model=update_delivery&id=<?php echo $delivery['id'] ?>" ><i class="<?php echo $update ?>"></a></td>
+                        <td><a target="_blank" href="../pdf/template.php?id=<?php echo $delivery['id'] ?>"><i class="fa fa-print"></a></td>
+                        <td><a href="../api/deleteDelivery.php?id=<?php echo $delivery['id'] ?>"><i class="<?php echo $delete ?>"></a></td>
                     </tr>
                 <?php 
                     }   

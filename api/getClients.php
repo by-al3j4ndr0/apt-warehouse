@@ -11,58 +11,73 @@
     // Configurar cabeceras
     header('Content-Type: application/json');
 
-    $origen = json_decode(file_get_contents('php://input'), true);
-    $status = 'warehouse';
+    $request = json_decode(file_get_contents('php://input'), true);
 
-    if (!isset($origen['origen_id']) || empty($origen['origen_id'])) {
+    if (!isset($request['origen_id']) || empty($request['origen_id'])) {
         http_response_code(400);
         echo json_encode(['error' => 'Origen no especificado']);
         exit();
     }
 
-    $origen_id = intval($origen['origen_id']);
+    $warehouse_status = "warehouse";
+    $origen_id = intval($request['origen_id']);
+    $status = $request['selected_status'] ?? '';
+    $delivery_id = intval($request['delivery_id'] ?? 0);
 
     // Conectar a la base de datos
     include 'db_connect.php';
 
     try {
-        $shipments_stmt = $conn->prepare("SELECT * FROM `shipments` WHERE `origen` = ? AND `status` = ?");
-        $shipments_stmt->bind_param("ss", $origen_id, $status);
-        $shipments_stmt->execute();
-        $shipments_result = $shipments_stmt->get_result();
-
-        $count_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `status` = ?");
-
-        $clients_stmt = $conn->prepare("SELECT * FROM `clients` WHERE `ci` = ?");
-
-        $clients = [];
-
-        while($shipments_data = $shipments_result->fetch_assoc()){
-            $shipment_ci = $shipments_data['ci'];
-            
-            if(isset($clients[$shipment_ci])) {
-                continue; 
-            }
-            
-            $clients_stmt->bind_param("s", $shipment_ci);
-            $clients_stmt->execute();
-            $clients_result = $clients_stmt->get_result();
-            $clients_data = $clients_result->fetch_assoc();
-
-            $count_stmt->bind_param("ss", $shipment_ci, $status);
-            $count_stmt->execute();
-            $count_result = $count_stmt->get_result();
-            $count_data = $count_result->fetch_assoc();
-            $clients_data['count'] = $count_data['count']; 
-
-            $clients[$shipment_ci] = $clients_data;
+        header('Content-Type: application/json');
+        
+        if($status != "draft") {
+            throw new Exception("Invalid status");
         }
-
-        $shipments_stmt->close();
-        $clients_stmt->close();
-        $count_stmt->close();
-
-        print_r(json_encode($clients));
+        
+        if($delivery_id == 0) {
+            // Query simple para delivery_id == 0
+            $sql = "
+                SELECT 
+                    c.*,
+                    COUNT(s.hbl) as count,
+                    0 as checked
+                FROM clients c
+                INNER JOIN shipments s ON c.ci = s.ci
+                WHERE s.origen = ? AND s.status = ?
+                GROUP BY c.ci
+            ";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ss", $origen_id, $warehouse_status);
+            
+        } else {
+            // Query con checked para delivery_id > 0
+            $sql = "
+                SELECT 
+                    c.*,
+                    COUNT(s.hbl) as count,
+                    MAX(CASE WHEN s.route_id = ? THEN 1 ELSE 0 END) as checked
+                FROM clients c
+                INNER JOIN shipments s ON c.ci = s.ci
+                WHERE (s.origen = ? AND s.route_id = ?) 
+                OR (s.origen = ? AND s.status = ?)
+                GROUP BY c.ci
+            ";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssss", $delivery_id, $origen_id, $delivery_id, $origen_id, $warehouse_status);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $clients = [];
+        while($row = $result->fetch_assoc()) {
+            $row['checked'] = ($delivery_id == 0) ? false : (bool)$row['checked'];
+            $clients[] = $row;
+        }
+        
+        echo json_encode($clients);
+        
+        $stmt->close();
         
     } catch (Exception $e) {
         error_log("Error en getClients.php: " . $e->getMessage());
@@ -71,5 +86,5 @@
     }
 
     $conn->close();
-
+    
 ?>

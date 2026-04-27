@@ -1,48 +1,26 @@
-// Configuración de la tabla
-const tableConfig = {
-    searchInput: null,
-    table: null,
-    currentSortColumn: -1,
-    currentSortDir: 'asc'
-};
-
-// Inicializar funciones de tabla
-function initTableFunctions() {
-    tableConfig.searchInput = document.getElementById("search_input");
-    tableConfig.table = document.getElementById("clientsTable");
+// Función de búsqueda en la tabla de los delivery
+function searchTable() {
+    let input, filter, table, tr, td, i, j, txtValue, found;
+    input = document.getElementById("search_input");
     
-    if (tableConfig.searchInput) {
-        // Búsqueda en tiempo real
-        tableConfig.searchInput.addEventListener('keyup', function() {
-            searchTableImproved();
-        });
-    }
-}
-
-// Función de búsqueda mejorada con resaltado
-function searchTableImproved() {
-    if (!tableConfig.searchInput || !tableConfig.table) return;
+    if (!input) return;
     
-    let filter = tableConfig.searchInput.value.toUpperCase().trim();
-    let tr = tableConfig.table.getElementsByTagName("tr");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("clientsTable");
     
-    // Si no hay filtro, mostrar todas
-    if (filter === "") {
-        for (let i = 1; i < tr.length; i++) {
-            tr[i].style.display = "";
-            tr[i].classList.remove('filtered-out');
-        }
-        return;
-    }
+    if (!table) return;
     
-    for (let i = 1; i < tr.length; i++) {
-        let found = false;
-        let td = tr[i].getElementsByTagName("td");
+    tr = table.getElementsByTagName("tr");
+    
+    // Recorrer todas las filas (empezando desde 1 para saltar cabecera)
+    for (i = 1; i < tr.length; i++) {
+        found = false;
+        td = tr[i].getElementsByTagName("td");
         
-        // Saltar la columna del checkbox (índice 0 generalmente)
-        for (let j = 1; j < td.length; j++) {
+        // Recorrer todas las columnas
+        for (j = 1; j < 2; j++) { // Empezar desde 1 para saltar columna del checkbox
             if (td[j]) {
-                let txtValue = getCleanText(td[j]);
+                txtValue = td[j].textContent || td[j].innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
                     found = true;
                     break;
@@ -51,151 +29,95 @@ function searchTableImproved() {
         }
         
         tr[i].style.display = found ? "" : "none";
-        if (!found) tr[i].classList.add('filtered-out');
-        else tr[i].classList.remove('filtered-out');
     }
 }
 
-// Función de ordenamiento mejorada
-function sortTableImproved(columnIndex) {
-    if (!tableConfig.table) return;
+// Función de búsqueda en la tabla de los clientes generales
+function searchGClientsTable() {
+    let input, filter, table, tr, td, i, j, txtValue, found;
+    input = document.getElementById("search_input");
     
-    // Cambiar dirección si es la misma columna
-    if (tableConfig.currentSortColumn === columnIndex) {
-        tableConfig.currentSortDir = tableConfig.currentSortDir === 'asc' ? 'desc' : 'asc';
-    } else {
-        tableConfig.currentSortColumn = columnIndex;
-        tableConfig.currentSortDir = 'asc';
+    if (!input) return;
+    
+    filter = input.value.toUpperCase();
+    table = document.getElementById("clientsTable");
+    
+    if (!table) return;
+    
+    tr = table.getElementsByTagName("tr");
+    
+    // Recorrer todas las filas (empezando desde 1 para saltar cabecera)
+    for (i = 1; i < tr.length; i++) {
+        found = false;
+        td = tr[i].getElementsByTagName("td");
+        
+        // Recorrer todas las columnas
+        for (j = 0; j < 3; j++) { // Empezar desde 1 para saltar columna del checkbox
+            if (td[j]) {
+                txtValue = td[j].textContent || td[j].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        
+        tr[i].style.display = found ? "" : "none";
     }
+}
+
+
+// Función para ordenar la tabla
+function sortTableImproved(columnIndex) {
+    const table = document.getElementById("clientsTable");
+    if (!table) return;
     
-    let rows = Array.from(tableConfig.table.rows).slice(1); // Excluir cabecera
+    let switching = true;
+    let dir = "asc";
+    let switchcount = 0;
+    const tbody = table.getElementsByTagName("tbody")[0];
     
-    // Ordenar filas
+    if (!tbody) return;
+    
+    const rows = Array.from(tbody.getElementsByTagName("tr"));
+    
+    // Ordenar las filas
     rows.sort((rowA, rowB) => {
         let cellA = rowA.getElementsByTagName("td")[columnIndex];
         let cellB = rowB.getElementsByTagName("td")[columnIndex];
         
-        let valueA = getSortValue(cellA, columnIndex);
-        let valueB = getSortValue(cellB, columnIndex);
+        if (!cellA || !cellB) return 0;
         
-        let comparison = compareValues(valueA, valueB);
-        return tableConfig.currentSortDir === 'asc' ? comparison : -comparison;
-    });
-    
-    // Reinsertar filas ordenadas
-    let tbody = tableConfig.table.tBodies[0];
-    rows.forEach(row => tbody.appendChild(row));
-    
-    // Actualizar indicadores visuales
-    updateSortIndicators(columnIndex);
-}
-
-// Obtener valor para ordenamiento según tipo de columna
-function getSortValue(cell, columnIndex) {
-    if (!cell) return "";
-    
-    // Columna 0: Checkbox
-    if (columnIndex === 0) {
-        const checkbox = cell.querySelector('input[type="checkbox"]');
-        return checkbox ? (checkbox.checked ? 1 : 0) : 0;
-    }
-    
-    // Columna 2: Envíos (número)
-    if (columnIndex === 2) {
-        const text = getCleanText(cell);
-        const number = parseInt(text);
-        return isNaN(number) ? 0 : number;
-    }
-    
-    // Otras columnas: texto
-    return getCleanText(cell);
-}
-
-// Obtener texto limpio de una celda
-function getCleanText(element) {
-    if (!element) return "";
-    
-    // Clonar y remover elementos no deseados
-    const clone = element.cloneNode(true);
-    const inputs = clone.querySelectorAll('input, button, .badge');
-    inputs.forEach(input => input.remove());
-    
-    return (clone.textContent || clone.innerText || "").trim();
-}
-
-// Comparar valores genéricamente
-function compareValues(a, b) {
-    // Si ambos son números
-    if (typeof a === 'number' && typeof b === 'number') {
-        return a - b;
-    }
-    
-    // Convertir a string para comparación
-    const strA = String(a).toLowerCase();
-    const strB = String(b).toLowerCase();
-    
-    return strA.localeCompare(strB, 'es', { numeric: true });
-}
-
-// Actualizar indicadores visuales de ordenamiento
-function updateSortIndicators(sortedColumn) {
-    // Remover indicadores existentes
-    document.querySelectorAll('#clientsTable th .sort-indicator').forEach(ind => ind.remove());
-    
-    // Agregar indicador a la columna ordenada
-    const headers = document.querySelectorAll('#clientsTable th');
-    if (headers[sortedColumn]) {
-        const indicator = document.createElement('span');
-        indicator.className = 'sort-indicator ms-1';
-        indicator.textContent = tableConfig.currentSortDir === 'asc' ? ' ▲' : ' ▼';
-        headers[sortedColumn].appendChild(indicator);
-    }
-}
-
-// Función para filtrar por checkbox seleccionados
-function filterSelectedOnly() {
-    const checkboxes = document.querySelectorAll('#clientsTable input[type="checkbox"]');
-    const showOnlySelected = document.getElementById('showSelectedOnly')?.checked || false;
-    
-    const rows = document.querySelectorAll('#clientsTable tbody tr');
-    
-    rows.forEach((row, index) => {
-        if (showOnlySelected) {
-            const checkbox = row.querySelector('input[type="checkbox"]');
-            row.style.display = checkbox && checkbox.checked ? "" : "none";
+        let valueA = cellA.textContent || cellA.innerText;
+        let valueB = cellB.textContent || cellB.innerText;
+        
+        // Para la columna de envíos (índice 2), convertir a número
+        if (columnIndex === 2) {
+            valueA = parseInt(valueA) || 0;
+            valueB = parseInt(valueB) || 0;
+        }
+        
+        if (dir === "asc") {
+            return valueA > valueB ? 1 : -1;
         } else {
-            row.style.display = "";
+            return valueA < valueB ? 1 : -1;
         }
     });
+    
+    // Reinsertar las filas ordenadas
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // Cambiar la dirección para la próxima vez
+    dir = dir === "asc" ? "desc" : "asc";
 }
 
-// Event listeners para ordenamiento
-function attachSortEvents() {
-    const headers = document.querySelectorAll('#clientsTable th');
-    headers.forEach((header, index) => {
-        header.style.cursor = 'pointer';
-        header.addEventListener('click', () => sortTableImproved(index));
-    });
-}
-
-// Inicializar todo
-document.addEventListener('DOMContentLoaded', function() {
-    initTableFunctions();
-    attachSortEvents();
-    
-    // Opcional: Agregar checkbox para filtrar seleccionados
-    const filterContainer = document.createElement('div');
-    filterContainer.className = 'mb-3';
-    filterContainer.innerHTML = `
-        <label class="form-check-label">
-            <input type="checkbox" id="showSelectedOnly" class="form-check-input">
-            Mostrar solo seleccionados
-        </label>
-    `;
-    
-    const searchInput = document.getElementById('search_input');
-    if (searchInput && searchInput.parentNode) {
-        searchInput.parentNode.appendChild(filterContainer);
-        document.getElementById('showSelectedOnly').addEventListener('change', filterSelectedOnly);
+// Función para adjuntar evento de búsqueda
+function attachSearchEvent() {
+    const searchInput = document.getElementById("search_input");
+    if (searchInput) {
+        // Remover evento anterior si existe
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        newSearchInput.addEventListener("keyup", searchTable);
     }
-});
+}

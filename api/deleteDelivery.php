@@ -17,11 +17,15 @@ function deleteShipment($id) {
         $stmt->bind_param("ss", $status, $id);
         $stmt->execute();
 
+        $_SESSION['success_message'] = "Delivery route removed successfully!";
+        header("Location: ../delivery/deliveries.php");
+        exit();
+
     } catch(Exception $e) {
-        echo $e;
+        $_SESSION['error_message'] = "Failed to remove delivery: " . $e->getMessage();
+        header("Location: " . $_SERVER['HTTP_REFERER']);
+        exit();
     }
-        
-    header("Location: ../delivery/deliveries.php");
 }
 
 ?>

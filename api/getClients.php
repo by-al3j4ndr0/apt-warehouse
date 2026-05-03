@@ -20,6 +20,7 @@
     }
 
     $warehouse_status = "warehouse";
+    $warehouse_id = "0";
     $origen_id = intval($request['origen_id']);
     $status = $request['selected_status'] ?? '';
     $delivery_id = intval($request['delivery_id'] ?? 0);
@@ -32,6 +33,7 @@
 
     if($status == 'delivering') {
         $warehouse_status = 'delivering';
+        $warehouse_id = $delivery_id;
     }
         
         if($delivery_id == 0) {
@@ -58,12 +60,12 @@
                     MAX(CASE WHEN s.route_id = ? THEN 1 ELSE 0 END) as checked
                 FROM clients c
                 INNER JOIN shipments s ON c.ci = s.ci
-                WHERE (s.origen = ? AND s.route_id = ?) 
-                OR (s.origen = ? AND s.status = ?)
+                WHERE (s.route_id = ?) 
+                OR (s.origen = ? AND s.status = ? AND s.route_id = ?)
                 GROUP BY c.ci
             ";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssss", $delivery_id, $origen_id, $delivery_id, $origen_id, $warehouse_status);
+            $stmt->bind_param("sssss", $delivery_id, $delivery_id, $origen_id, $warehouse_status, $warehouse_id);
         }
         
         $stmt->execute();

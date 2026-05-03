@@ -26,62 +26,38 @@ if (!isset($_SESSION['username'])) {
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-sm navbar-light bg-success">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php" style="font-weight:bold; color:white;">Inicio</a>
-            <a class="navbar-brand" href="#" style="font-weight:bold; color:white;">Clientes</a>
-            <a class="navbar-brand" href="../shipments/shipments.php" style="font-weight:bold; color:white;">Rutas</a>
-            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="collapsibleNavId">
-                <ul class="navbar-nav m-auto mt-2 mt-lg-0">
-                </ul>
-                <form class="d-flex my-2 my-lg-0">
-                    <a href="../logout.php" class="btn btn-light my-2 my-sm-0"
-                      type="submit" style="font-weight:bolder;color:green;">
-                        Cerrar Sesion</a>
-                </form>
-            </div>
-        </div>
-    </nav>
+    <?php include '../header.php' ?>
 
-    <div class="container p-5 d-flex flex-column align-items-left">
-        <input type="text" id="search_input" onkeyup="searchTable()" placeholder="Buscar por nombre..">
-        <table class="table table-light" id="table">
-            <thead>
-                <tr class="header">
-                    <th scope="col" onclick="sortTable(0)">Nombre</th>
-                    <th scope="col" onclick="sortTable(1)">CI</th>
-                    <th scope="col" onclick="sortTable(2)">Telefono</th>
-                    <th scope="col" onclick="sortTable(3)">Direccion</th>
-                    <th scope="col" onclick="sortTable(4)">Municipio</th>
-                    <th scope="col" onclick="sortTable(5)">Provincia</th>
+    <div class="p-3 d-flex flex-column">
+        <input type="text" id="search_input" onkeyup="searchGClientsTable()" placeholder="Buscar por nombre..">
+        <table class="table table-bordered table-hover" id="clientsTable">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">CI</th>
+                    <th scope="col">Municipio</th>
+                    <th scope="col">Provincia</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
 
-                    include '../db/db_connect.php';
+                    include '../api/db_connect.php';
 
-                    $stmt = $conn->query("SELECT * FROM `clients`");
+                    $clientsList_stmt = $conn->query("SELECT * FROM `clients` ORDER BY `name`");
 
-                    while ($row = $stmt->fetch_assoc()) {
+                    while ($generalClient = $clientsList_stmt->fetch_assoc()) {
 
                 ?>
                     <tr>  
                         <td style="font-size: 15px">
-                            <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $row['ci'] ?>">
-                                <?php echo $row['name'] ?>
+                            <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $generalClient['ci'] ?>">
+                                <?php echo $generalClient['name'] ?>
                             </a>
                         </td>
-                        <td style="font-size: 15px"><?php echo $row['ci'] ?></td>
-                        <td style="font-size: 15px"><?php echo $row['phone'] ?></td>
-                        <td style="font-size: 15px"><?php echo $row['address'] ?></td> 
-                        <td style="font-size: 15px"><?php echo $row['city'] ?></td>
-                        <td style="font-size: 15px"><?php echo $row['state'] ?></td>
+                        <td style="font-size: 15px"><?php echo $generalClient['ci'] ?></td>
+                        <td style="font-size: 15px"><?php echo $generalClient['city'] ?></td>
+                        <td style="font-size: 15px"><?php echo $generalClient['state'] ?></td>
                     </tr>
                 <?php 
                     }

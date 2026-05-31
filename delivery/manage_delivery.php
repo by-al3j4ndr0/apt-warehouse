@@ -10,11 +10,6 @@ if (!isset($_SESSION['username'])) {
 // Validar y obtener el modelo
 $model = isset($_GET['model']) ? $_GET['model'] : '';
 
-// Inicializar variables globales
-$origen_stmt = null;
-$drivers_stmt = null;
-$vehicule_stmt = null;
-
 // Ejecutar según el modelo
 switch ($model) {
     case 'new_delivery':
@@ -32,32 +27,15 @@ switch ($model) {
 }
 
 // Funciones
-function get_global_info() {
-    include '../api/db_connect.php';
-    
-    global $origen_stmt, $drivers_stmt, $vehicule_stmt;
-    
-    try {
-        $origen_stmt = $conn->query("SELECT * FROM `origen`");
-        $drivers_stmt = $conn->query("SELECT * FROM `drivers`");
-        $vehicule_stmt = $conn->query("SELECT * FROM `vehicules`");
-        
-        if (!$origen_stmt || !$drivers_stmt || !$vehicule_stmt) {
-            throw new Exception("Error al cargar los datos");
-        }
-    } catch (Exception $e) {
-        $_SESSION['error_message'] = $e->getMessage();
-        error_log("Error en get_global_info: " . $e->getMessage());
-    }
-}
-
 function newDelivery() {
+
+    include '../api/getDeliveryInfo.php';
 
     global $formActionHref;
     global $deliveryId, $deliveryName, $origenId, $driverId, $vehiculeId;
     global $page_tittle, $draft_state, $finished_state, $origen_state, $input_delivering_state;
 
-    get_global_info();
+    getGlobalInfo();
     $page_tittle = "Nueva Ruta";
     $formActionHref = "../api/createDelivery.php";
     $deliveryId = "0";
@@ -80,6 +58,7 @@ function updateDelivery(int $delivery_id) {
     global $formActionHref;
     global $draft_state, $finished_state, $origen_state, $delivering_state, $input_delivering_state;
     global $deliveryId, $deliveryName, $origenId, $driverId, $vehiculeId;
+    global $origen_stmt, $drivers_stmt, $vehicule_stmt;
 
     $page_tittle = "Modificar Ruta";
     $formActionHref = "../api/updateDelivery.php";
@@ -87,7 +66,7 @@ function updateDelivery(int $delivery_id) {
     $deliveryId = $delivery_id;  
 
     if($delivery_data['status'] == 'draft') {
-        get_global_info();
+        getGlobalInfo();
         $draft_state = "checked";
         $finished_state = "disabled";
         $origen_state = 'readonly="true"';
@@ -97,7 +76,9 @@ function updateDelivery(int $delivery_id) {
         $driverId = $delivery_data['driver'];
         $vehiculeId = $delivery_data['vehicule'];
     } else if($delivery_data['status'] == 'delivering') {
-        get_global_info();
+        $origen_stmt = getSingleFieldInfo($delivery_data['origen'], 'origen');
+        $drivers_stmt = getSingleFieldInfo($delivery_data['driver'], 'drivers');
+        $vehicule_stmt = getSingleFieldInfo($delivery_data['vehicule'], 'vehicules');
         $draft_state = "disabled";
         $delivering_state = "checked";
         $origen_state = 'readonly="true"';

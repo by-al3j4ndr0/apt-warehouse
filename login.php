@@ -103,9 +103,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="password" name="password" id="password" 
                   class="form-control" required>
             </div>
-            <div class="col mb-3 mt-3">
+            <div class="align-items-center mb-3 mt-3">
                 <button type="submit" 
-                  class="btn btn-success bg-success" style="font-weight: 600;">Iniciar Sesion</button>
+                  class="btn btn-outline-dark" style="font-weight: 600;">Iniciar Sesion</button>
             </div>
         </form>
     </div>

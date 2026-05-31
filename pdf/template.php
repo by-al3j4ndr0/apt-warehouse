@@ -12,7 +12,7 @@ if (!isset($_SESSION['username'])) {
 if (isset($_GET['id']))
     exportRoute($_GET['id']);
 
-function exportRoute($delivery_id) {
+function exportRoute(int $delivery_id) {
 
     include '../api/db_connect.php';
     include '../api/getInfoById.php';

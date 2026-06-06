@@ -69,3 +69,14 @@ th:hover {
   font-weight: bold;
   box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
 }
+
+.header {
+  color: black;
+  padding: 30px;
+  text-align: center;
+}
+        
+.header h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}

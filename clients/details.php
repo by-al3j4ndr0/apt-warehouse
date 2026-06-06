@@ -14,74 +14,18 @@ if (isset($_GET['ci'])) {
     // Adjust pattern based on your CI format (e.g., numbers, letters, hyphens)
     if (!preg_match('/^[a-zA-Z0-9-]+$/', $ci)) {
         $_SESSION['error_message'] = "Invalid client ID format";
-        header("Location: ../clients.php");
+        header("Location: ./clients.php");
         exit();
     }
     
-    include '../api/db_connect.php';
-    clientDetails($ci, $conn);
-    getClientShipments($ci, $conn);
-    $conn->close();
+    include '../api/getClientsDetails.php';
+    
+    clientDetails($ci);
+    getClientShipments($ci);
+
 } else {
-    header("Location: ../clients.php");
+    header("Location: ./clients.php");
     exit();
-}
-
-function clientDetails(string $ci, mysqli $conn) {
-    global $client_name, $client_ci, $client_phone, $client_address, $client_city, $client_state;
-    
-    try {
-        $client_info_stmt = $conn->prepare("SELECT * FROM `clients` WHERE `ci` = ?");
-        $client_info_stmt->bind_param("s", $ci);
-        $client_info_stmt->execute();
-        
-        $client_info_result = $client_info_stmt->get_result();
-        
-        if ($client_info_data = $client_info_result->fetch_assoc()) {
-            // Escape all output data
-            $client_name = htmlspecialchars($client_info_data['name'], ENT_QUOTES, 'UTF-8');
-            $client_ci = htmlspecialchars($client_info_data['ci'], ENT_QUOTES, 'UTF-8');
-            $client_phone = htmlspecialchars($client_info_data['phone'], ENT_QUOTES, 'UTF-8');
-            $client_address = htmlspecialchars($client_info_data['address'], ENT_QUOTES, 'UTF-8');
-            $client_city = htmlspecialchars($client_info_data['city'], ENT_QUOTES, 'UTF-8');
-            $client_state = htmlspecialchars($client_info_data['state'], ENT_QUOTES, 'UTF-8');
-        } else {
-            throw new Exception("Client not found");
-        }
-        
-        $client_info_stmt->close();
-        
-    } catch (Exception $e) {
-        // Log error internally
-        error_log("Client details error: " . $e->getMessage());
-        
-        // Generic user message
-        $_SESSION['error_message'] = "Unable to load client details. Please try again later.";
-        header("Location: ../clients.php");
-        exit();
-    }
-}
-
-function getClientShipments(string $ci, mysqli $conn) {
-    global $shipment_info_result;
-    
-    try {
-        $shipment_info_stmt = $conn->prepare("SELECT `hbl`, `route_id`, `status` FROM `shipments` WHERE `ci` = ?");
-        $shipment_info_stmt->bind_param("s", $ci);
-        $shipment_info_stmt->execute();
-        
-        $shipment_info_result = $shipment_info_stmt->get_result();
-        $shipment_info_stmt->close();
-        
-    } catch (Exception $e) {
-        // Log error internally
-        error_log("Shipments query error: " . $e->getMessage());
-        
-        // Generic user message
-        $_SESSION['error_message'] = "Unable to load shipments. Please try again later.";
-        header("Location: ../clients.php");
-        exit();
-    }
 }
 ?>
 <!DOCTYPE html>
@@ -89,11 +33,13 @@ function getClientShipments(string $ci, mysqli $conn) {
 
 <head>
     <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/font-awesome-all.css">
     <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../resources/css/font-awesome.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"content="width=device-width, initial-scale=1.0">
     <title>Detalles</title>
 </head>
 
@@ -139,7 +85,7 @@ function getClientShipments(string $ci, mysqli $conn) {
                 <h5><label class="">Dirección: <?php echo $client_address . ", " . $client_city . ", " . $client_state ?></label></h5>
             </div>
             <div class="row p-2">
-                <a class="btn btn-dark" href="./edit_client.php?ci=<?php echo urlencode($ci) ?>">Editar Cliente</a>
+                <a class="btn btn-dark" href="./editClient.php?ci=<?php echo urlencode($client_ci) ?>">Editar Cliente</a>
             </div>
         </div>
         <div class="col container p-5 align-items-left">

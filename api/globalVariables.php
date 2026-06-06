@@ -26,5 +26,7 @@ $deliveryName = "";
 $status = "";
 $update = "";
 $delete = "";
+$message = "";
+$toastClass = "";
 
 ?>

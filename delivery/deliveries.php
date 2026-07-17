@@ -112,7 +112,7 @@ if (!isset($_SESSION['username'])) {
                         <td><?php echo "$" . $delivery['total_tariff'] ?></td>
                         <td><?php echo $delivery['total_shipments'] ?></td>
                         <td><a href="./manageDelivery.php?model=update_delivery&id=<?php echo $delivery['id'] ?>" ><i class="<?php echo $update ?>"></a></td>
-                        <td><a target="_blank" href="../pdf/template.php?id=<?php echo $delivery['id'] ?>"><i class="fa fa-print"></a></td>
+                        <td><a target="_blank" href="../pdf/exportPdf.php?id=<?php echo $delivery['id'] ?>"><i class="fa fa-print"></a></td>
                         <td><a href="../api/deleteDelivery.php?id=<?php echo $delivery['id'] ?>"><i class="<?php echo $delete ?>"></a></td>
                         <td><a href="../api/exportRouteInfo.php?id=<?php echo $delivery['id'] ?>"><i class="fa fa-external-link"></a></td>
                     </tr>

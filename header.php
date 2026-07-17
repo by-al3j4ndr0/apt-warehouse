@@ -18,7 +18,7 @@
                         <a class="nav-link active" href="../delivery/deliveries.php">Rutas</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link active dropdown-toggle" href="../#" id="navbarDropdownMenuLink" role="button" 
+                        <a class="nav-link active dropdown-toggle" href="../index.php" id="navbarDropdownMenuLink" role="button" 
                         data-bs-toggle="dropdown" aria-expanded="false">
                             Ajustes
                         </a>

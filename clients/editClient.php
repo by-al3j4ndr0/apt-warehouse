@@ -49,7 +49,7 @@ if (isset($_GET['ci'])) {
         <div class="header">
             <h1>Editar Cliente</h1>
         </div>
-        <form method="POST" action="../api/editClientsInfo.php">
+        <form method="POST" action="../api/updateClient.php">
             <div class="form-control">
                 <div class="row p-2">
                     <div class="col">
@@ -85,10 +85,10 @@ if (isset($_GET['ci'])) {
                 </div>
                 <div class="container">
                     <div class="row p-2">
-                        <a class="btn btn-dark" href="./details.php?ci=<?php echo urlencode($client_ci) ?>">Atras</a>
+                        <a class="btn btn-warning" href="./details.php?ci=<?php echo urlencode($client_ci) ?>">Atras</a>
                     </div>
                     <div class="row p-2">
-                        <a class="btn btn-dark" href="./editClient.php?ci=<?php echo urlencode($client_ci) ?>">Guardar</a>
+                        <input type="submit" class="btn btn-success" value="Guardar">
                     </div>
                 </div>
             </div>

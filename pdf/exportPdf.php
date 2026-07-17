@@ -12,6 +12,20 @@ if (!isset($_SESSION['username'])) {
 if (isset($_GET['id']))
     exportRoute($_GET['id']);
 
+function clientRouteSort($key, $order = null) {
+    return function ($a, $b) use ($key, $order) {
+        // Función para comparación de strings con caracteres del español
+        $strA = mb_strtolower($a->$key, 'UTF-8');
+        $strB = mb_strtolower($b->$key, 'UTF-8');
+        
+        if ($order == "DESC") {
+            return strcoll($strB, $strA);
+        } else {
+            return strcoll($strA, $strB);
+        }
+    };
+}
+
 function exportRoute(int $delivery_id) {
 
     include '../api/db_connect.php';
@@ -117,44 +131,54 @@ function exportRoute(int $delivery_id) {
                         $count_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `route_id` = ?");
                         $tariff_stmt = $conn->prepare("SELECT COALESCE(SUM(`tariff`), 0) as tariff FROM `shipments` WHERE `ci` = ? AND `route_id` = ?");
                         $shipment_ci = explode(", ", $delivery_data['shipments']);
-                        $clients_data = [];
+                        $clients_data_array = [];
                             
                         foreach ($shipment_ci as $ci => $value) {   
                             $clients_stmt->bind_param("s", $shipment_ci[$ci]);
                             $clients_stmt->execute();
                             $clients_result = $clients_stmt->get_result();
-                            $clients_data = $clients_result->fetch_assoc();
+                            $client_data = $clients_result->fetch_assoc();
 
                             $count_stmt->bind_param("ss", $shipment_ci[$ci], $delivery_id);
                             $count_stmt->execute();
                             $count_result = $count_stmt->get_result();
                             $count_data = $count_result->fetch_assoc();
-                            $clients_data['count'] = $count_data['count'];
+                            $client_data['count'] = $count_data['count'];
                             
                             $tariff_stmt->bind_param("ss", $shipment_ci[$ci], $delivery_id);
                             $tariff_stmt->execute();
                             $tariff_result = $tariff_stmt->get_result();
                             $tariff = $tariff_result->fetch_assoc();
-
+                            $client_data['tariff'] = $tariff['tariff'];
+                            
+                            // Guardar en array para ordenar después
+                            $clients_data_array[] = (object)$client_data;
+                        }
+                        
+                        // Ordenar el array alfabéticamente por nombre usando la función clientRouteSort
+                        // Usar orden ascendente (A-Z) con soporte para caracteres del español
+                        usort($clients_data_array, clientRouteSort('name', 'ASC'));
+                        
+                        // Mostrar los clientes ya ordenados
+                        foreach ($clients_data_array as $client_data) {
                     ?>
-                            <tr>  
-                                <td style="font-size: 15px"><?php echo $clients_data['name'] ?></td>
-                                <td style="font-size: 15px"><?php echo $clients_data['ci'] ?></td>
-                                <td style="font-size: 15px"><?php echo $clients_data['phone'] ?></td>
-                                <td style="font-size: 15px"><?php echo $clients_data['count'] ?></td>
-                                <td style="font-size: 15px"><?php echo "$" . $tariff['tariff'] ?></td>
+                             <tr>  
+                                <td style="font-size: 15px"><?php echo htmlspecialchars($client_data->name, ENT_QUOTES, 'UTF-8') ?></td>
+                                <td style="font-size: 15px"><?php echo htmlspecialchars($client_data->ci, ENT_QUOTES, 'UTF-8') ?></td>
+                                <td style="font-size: 15px"><?php echo htmlspecialchars($client_data->phone, ENT_QUOTES, 'UTF-8') ?></td>
+                                <td style="font-size: 15px"><?php echo htmlspecialchars($client_data->count, ENT_QUOTES, 'UTF-8') ?></td>
+                                <td style="font-size: 15px"><?php echo "$" . htmlspecialchars($client_data->tariff, ENT_QUOTES, 'UTF-8') ?></td>
                                 <td style="font-size: 15px" rowspan="2">
                                     <input type="text" class="form-control" placeholder="">
                                 </td>
-                            </tr>
+                             </tr>
                             <tr class="address">
                                 <td colspan="6" style="font-size: 15px"><b>Direccion: </b>
-                                <?php echo $clients_data['address'] . " " . $clients_data['city']?></td>
-                            </tr>
+                                <?php echo htmlspecialchars($client_data->address, ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($client_data->city, ENT_QUOTES, 'UTF-8')?>
+                                </td>
+                             </tr>
                     <?php
-
                         }
-
                     ?>
 
                     <tr class="total-footer">
@@ -169,7 +193,7 @@ function exportRoute(int $delivery_id) {
     <div class="p-5 d-flex flex-column align-items-left">
         <div class="p-3 row">
             <div class="col">
-                <h5>Emite: <?php echo $_SESSION['first_name'] . " " . $_SESSION['last_name'] ?></h5>
+                <h5>Emite: <?php echo htmlspecialchars($_SESSION['first_name'] . " " . $_SESSION['last_name'], ENT_QUOTES, 'UTF-8') ?></h5>
             </div>
             <div class="col">
                 

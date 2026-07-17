@@ -39,35 +39,47 @@ if (!isset($_SESSION['username'])) {
         <h2 class="p-4 mt-5">Choferes</h2>
     </div>
     <div class="container">
-        <select id="driver" class="form-control" name="driver">
-            <option name="default_driver" value="">Seleccione...</option>
-            <?php if (isset($drivers_stmt) && $drivers_stmt): ?>
-                <?php while($drivers = $drivers_stmt->fetch_assoc()): ?>
-                    <option value="<?php echo htmlspecialchars($drivers['id']); ?>">
-                        <?php echo htmlspecialchars($drivers['name']); ?>
-                    </option>
-                <?php endwhile; ?>
-            <?php endif; ?>
-        </select>
-        <td><a href=""><i class="fa fa-edit"></a></td>
-        <td><a href=""><i class="fa fa-trash"></a></td>
+        <div class="row">
+            <div class="col">
+                <select id="driver" class="form-control" name="driver">
+                    <option name="default_driver" value="">Seleccione...</option>
+                    <?php if (isset($drivers_stmt) && $drivers_stmt): ?>
+                        <?php while($drivers = $drivers_stmt->fetch_assoc()): ?>
+                            <option value="<?php echo htmlspecialchars($drivers['id']); ?>">
+                                <?php echo htmlspecialchars($drivers['name']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+            <div class="col">
+                <a href=""><i class="fa fa-edit"></i></a>
+                <a href=""><i class="fa fa-trash"></i></a>
+            </div>
+        </div>
     </div>
 
     <div class="container p-3 d-flex">
         <h2 class="p-4 mt-5">Vehiculos</h2>
     </div>
     <div class="container">
-        <select id="vehicule" class="form-control" name="vehicule">
-            <option name="default_driver" value="">Seleccione...</option>
-            <?php if (isset($vehicule_stmt) && $vehicule_stmt): ?>
-                <?php while($vehicule = $vehicule_stmt->fetch_assoc()): ?>
-                    <option value="<?php echo htmlspecialchars($vehicule['id']); ?>">
-                        <?php echo htmlspecialchars($vehicule['matriculate']); ?>
-                    </option>
-                <?php endwhile; ?>
-            <?php endif; ?>
-        </select>
-        <a href=""><i class="fa fa-edit"></a>
-        <a href=""><i class="fa fa-trash"></a>
+        <div class="row">
+            <div class="col">
+                <select id="vehicule" class="form-control" name="vehicule">
+                    <option name="default_driver" value="">Seleccione...</option>
+                    <?php if (isset($vehicule_stmt) && $vehicule_stmt): ?>
+                        <?php while($vehicule = $vehicule_stmt->fetch_assoc()): ?>
+                            <option value="<?php echo htmlspecialchars($vehicule['id']); ?>">
+                                <?php echo htmlspecialchars($vehicule['matriculate']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+            <div class="col">
+                <a href=""><i class="fa fa-edit"></i></a>
+                <a href=""><i class="fa fa-trash"></i></a>
+            </div>
+        </div>
     </div>
 </body>

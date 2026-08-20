@@ -48,7 +48,7 @@ if (!isset($_SESSION['username'])) {
                     while ($generalClient = $clientsList_stmt->fetch_assoc()) {
 
                 ?>
-                    <tr>  
+                    <tr style="display: none;">  
                         <td style="font-size: 15px">
                             <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $generalClient['ci'] ?>">
                                 <?php echo $generalClient['name'] ?>

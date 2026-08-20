@@ -47,10 +47,13 @@ function exportRoute(int $delivery_id) {
 
         if($status == 'draft') {
             $status_showed = "Borrador";
+            $last_scam = "Envios";
         } else if($status == 'delivering') {
             $status_showed = "Entregando";
+            $last_scam = "Firma";
         } else if ($status == 'finished') {
             $status_showed = "Terminada";
+            $last_scam = "Firma";
         }
     } catch (Exception $e) {
         echo $e;
@@ -122,7 +125,7 @@ function exportRoute(int $delivery_id) {
                         <th scope="col">Telefono</th>
                         <th scope="col">Bultos</th>
                         <th scope="col">Arancel</th>
-                        <th class="col-md-3" scope="col">Firma</th>
+                        <th class="col-md-3" scope="col"><?php echo $last_scam ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -130,6 +133,7 @@ function exportRoute(int $delivery_id) {
                         $clients_stmt = $conn->prepare("SELECT * FROM `clients` WHERE `ci` = ?");
                         $count_stmt = $conn->prepare("SELECT COUNT(`ci`) as count FROM `shipments` WHERE `ci` = ? AND `route_id` = ?");
                         $tariff_stmt = $conn->prepare("SELECT COALESCE(SUM(`tariff`), 0) as tariff FROM `shipments` WHERE `ci` = ? AND `route_id` = ?");
+                        $shipments_stmt = $conn->prepare("SELECT `hbl` FROM `shipments` WHERE `ci` = ? AND `route_id` = ?");
                         $shipment_ci = explode(", ", $delivery_data['shipments']);
                         $clients_data_array = [];
                             
@@ -150,6 +154,19 @@ function exportRoute(int $delivery_id) {
                             $tariff_result = $tariff_stmt->get_result();
                             $tariff = $tariff_result->fetch_assoc();
                             $client_data['tariff'] = $tariff['tariff'];
+
+                            $shipments_stmt->bind_param("ss", $shipment_ci[$ci], $delivery_id);
+                            $shipments_stmt->execute();
+                            $shipments_result = $shipments_stmt->get_result();
+                            if ($shipments_result->num_rows > 0) {
+                                $shipments = [];
+                                
+                                while ($row = $shipments_result->fetch_assoc()) {
+                                    $shipments[] = $row['hbl'];
+                                }
+                                
+                                $client_data['shipments'] = implode(", ", $shipments);
+                            }
                             
                             // Guardar en array para ordenar después
                             $clients_data_array[] = (object)$client_data;
@@ -169,7 +186,11 @@ function exportRoute(int $delivery_id) {
                                 <td style="font-size: 15px"><?php echo htmlspecialchars($client_data->count, ENT_QUOTES, 'UTF-8') ?></td>
                                 <td style="font-size: 15px"><?php echo "$" . htmlspecialchars($client_data->tariff, ENT_QUOTES, 'UTF-8') ?></td>
                                 <td style="font-size: 15px" rowspan="2">
-                                    <input type="text" class="form-control" placeholder="">
+                                    <?php if($status == 'draft'){ ?>
+                                        <label class="font-weight-bold"><?php echo htmlspecialchars($client_data->shipments, ENT_QUOTES, 'UTF-8') ?></label>
+                                    <?php } elseif($status == 'delivering'){ ?>
+                                        <input type="text" class="form-control" placeholder="">
+                                    <?php } ?>
                                 </td>
                              </tr>
                             <tr class="address">

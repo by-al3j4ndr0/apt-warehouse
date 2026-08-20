@@ -37,8 +37,15 @@ if (!isset($_SESSION['username'])) {
                     <li class="nav-item">
                         <a class="nav-link active" href="index.php">Inicio</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="clients/clients.php">Clientes</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link active dropdown-toggle" href="index.php" id="navbarDropdownMenuLink" role="button" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                            Buscar
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <li><a class="dropdown-item" href="search/clients.php">Clientes</a></li>
+                            <li><a class="dropdown-item" href="search/shipments.php">Envios</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="delivery/deliveries.php">Rutas</a>

@@ -87,6 +87,9 @@ if (isset($_GET['ci'])) {
             <div class="row p-2">
                 <a class="btn btn-dark" href="./editClient.php?ci=<?php echo urlencode($client_ci) ?>">Editar Cliente</a>
             </div>
+            <div class="row p-2">
+                <a class="btn btn-warning" href="../search/clients.php">Atras</a>
+            </div>
         </div>
         <div class="col container p-5 align-items-left">
             <div class="row align-items-center">

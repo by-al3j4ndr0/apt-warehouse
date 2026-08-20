@@ -14,7 +14,7 @@
         $updateClient_stmt->bind_param("sssssss", $clientCI, $clientName, $clientPhone, $clientAddress, $clientCity, $clientState, $clientCI);
         $updateClient_stmt->execute();
 
-        header("Location: ../clients/details.php?ci=" . $clientCI);
+        header("Location: ../search/details.php?ci=" . $clientCI);
         exit();
     } catch (Exception $e) {
         error_log("Error en updateClient.php: " . $e->getMessage());

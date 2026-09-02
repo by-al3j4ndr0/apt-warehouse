@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Initialize variables and validate input
     $errors = [];
-    $requiredFields = ['deliveryId', 'driver', 'vehicule', 'origen', 'clients'];
+    $requiredFields = ['deliveryId', 'driver', 'vehicule', 'origen'];
     
     foreach ($requiredFields as $field) {
         if (!isset($_POST[$field]) || (is_array($_POST[$field]) && count($_POST[$field]) === 0) || (!is_array($_POST[$field]) && trim($_POST[$field]) === '')) {
@@ -143,7 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt = $conn->prepare("UPDATE `shipments` 
                                   SET `status` = ? 
                                   WHERE `ci` IN ($placeholders) 
-                                  AND `route_id` = ? 
+                                  AND `route_id` = ?
                                   AND `origen` = ?");
             
             if (!$stmt) {

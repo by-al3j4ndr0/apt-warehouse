@@ -14,14 +14,13 @@ if (!isset($_SESSION['username'])) {
 
 <head>
     <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/font-awesome-all.css">
     <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../resources/css/font-awesome.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
     <script src="../resources/js/bootstrap.bundle.min.js"></script>
     <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
-    <meta name="viewport"
-  content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"content="width=device-width, initial-scale=1.0">
     <title>Clientes</title>
 </head>
 
@@ -49,7 +48,7 @@ if (!isset($_SESSION['username'])) {
                     while ($generalClient = $clientsList_stmt->fetch_assoc()) {
 
                 ?>
-                    <tr>  
+                    <tr style="display: none;">  
                         <td style="font-size: 15px">
                             <a class="link-dark link-underline link-underline-opacity-0" href="./details.php?ci=<?php echo $generalClient['ci'] ?>">
                                 <?php echo $generalClient['name'] ?>

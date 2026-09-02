@@ -1,4 +1,3 @@
-
 <?php
 
 function getInfoById(int $id, string $type) {

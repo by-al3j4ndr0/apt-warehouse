@@ -121,6 +121,8 @@ if (isset($_GET['ci'])) {
                                 $shipment_status_display = "Entregando";
                             } else if($shipment_status == "finished") {
                                 $shipment_status_display = "Terminada";
+                            } else if($shipment_status == "detained") {
+                                $shipment_status_display = "Detenido";
                             } else {
                                 $shipment_status_display = $shipment_status;
                             }
@@ -144,6 +146,9 @@ if (isset($_GET['ci'])) {
                                         break;
                                     case 'finished':
                                         $badge_class = 'bg-success';
+                                        break;
+                                    case 'detained':
+                                        $badge_class = 'bg-danger';
                                         break;
                                 }
                                 ?>

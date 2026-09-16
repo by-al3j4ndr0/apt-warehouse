@@ -47,6 +47,16 @@ if (!isset($_SESSION['username'])) {
                             <li><a class="dropdown-item" href="search/shipments.php">Envios</a></li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link active dropdown-toggle" href="../index.php" id="navbarDropdownMenuLink" role="button" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                            Almacen
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <li><a class="dropdown-item" href="./warehouse/inOutShipments.php">Entrada y Salida</a></li>
+                            <li><a class="dropdown-item" href="./warehouse/warehouseShipments.php">Envios en almacen</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="delivery/deliveries.php">Rutas</a>
                     </li>

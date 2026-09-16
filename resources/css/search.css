@@ -1,0 +1,151 @@
+/* === Buscador de shipments y clients (estilos compartidos) === */
+#shipments-search-app .search-bar,
+#clients-search-app .search-bar {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 14px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+#shipments-search-app .search-group,
+#clients-search-app .search-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 240px;
+}
+#shipments-search-app .search-group label,
+#clients-search-app .search-group label {
+    font-size: 11px;
+    color: #666;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+#shipments-search-app .search-group input,
+#clients-search-app .search-group input {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+}
+#shipments-search-app .search-group input:focus,
+#clients-search-app .search-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,.15);
+}
+#shipments-search-app .btn,
+#clients-search-app .btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background .15s;
+}
+#shipments-search-app .btn-secondary,
+#clients-search-app .btn-secondary { background: #e9ecef; color: #333; }
+#shipments-search-app .btn-secondary:hover,
+#clients-search-app .btn-secondary:hover { background: #d3d7dc; }
+
+#shipments-search-app .loading,
+#shipments-search-app .error,
+#shipments-search-app .empty,
+#shipments-search-app .warning,
+#clients-search-app .loading,
+#clients-search-app .error,
+#clients-search-app .empty,
+#clients-search-app .warning {
+    padding: 40px;
+    text-align: center;
+    background: #fff;
+    border-radius: 8px;
+    color: #666;
+    font-size: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+#shipments-search-app .error,
+#clients-search-app .error   { color: #c00; }
+#shipments-search-app .warning,
+#clients-search-app .warning { color: #b8860b; }
+
+#shipments-search-app .toolbar,
+#clients-search-app .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+#shipments-search-app .count,
+#clients-search-app .count { color: #555; font-size: 14px; }
+
+#shipments-search-app .table-wrap,
+#clients-search-app .table-wrap {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+#shipments-search-app table,
+#clients-search-app table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#shipments-search-app thead,
+#clients-search-app thead {
+    background: #007bff;
+    color: white;
+}
+#shipments-search-app th,
+#clients-search-app th {
+    padding: 12px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    user-select: none;
+    white-space: nowrap;
+}
+#shipments-search-app th.sortable,
+#clients-search-app th.sortable { cursor: pointer; }
+#shipments-search-app th.sortable:hover,
+#clients-search-app th.sortable:hover { background: #0056b3; }
+#shipments-search-app th .sort-arrow,
+#clients-search-app th .sort-arrow {
+    display: inline-block;
+    margin-left: 6px;
+    opacity: .4;
+    font-size: 11px;
+}
+#shipments-search-app th.sorted .sort-arrow,
+#clients-search-app th.sorted .sort-arrow { opacity: 1; }
+
+#shipments-search-app td,
+#clients-search-app td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+#shipments-search-app tbody tr:hover,
+#clients-search-app tbody tr:hover { background: #f0f8ff; }
+#shipments-search-app tbody tr:last-child td,
+#clients-search-app tbody tr:last-child td { border-bottom: none; }
+
+#shipments-search-app a.row-link,
+#clients-search-app a.row-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+#shipments-search-app a.row-link:hover,
+#clients-search-app a.row-link:hover { text-decoration: underline; }

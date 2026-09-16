@@ -1,0 +1,279 @@
+/* === Estilos locales (si no los tienes ya globalmente) === */
+#clients-app .loading,
+#clients-app .error,
+#clients-app .empty {
+    padding: 40px;
+    text-align: center;
+    background: #fff;
+    border-radius: 8px;
+    color: #666;
+    font-size: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+#clients-app .error { color: #c00; }
+
+#clients-app .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+#clients-app .count { color: #555; font-size: 14px; }
+
+#clients-app .search-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+#clients-app .search-group label {
+    font-size: 11px;
+    color: #666;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+#clients-app .search-group input {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+}
+#clients-app .search-group input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,.15);
+}
+
+#clients-app .table-wrap {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+#clients-app table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#clients-app thead {
+    background: #007bff;
+    color: white;
+}
+#clients-app th {
+    padding: 12px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    user-select: none;
+    white-space: nowrap;
+}
+#clients-app th.sortable { cursor: pointer; }
+#clients-app th.sortable:hover { background: #0056b3; }
+#clients-app th .sort-arrow {
+    display: inline-block;
+    margin-left: 6px;
+    opacity: .4;
+    font-size: 11px;
+}
+#clients-app th.sorted .sort-arrow { opacity: 1; }
+#clients-app th.checkbox-col,
+#clients-app td.checkbox-col { width: 44px; text-align: center; }
+
+#clients-app td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+#clients-app tbody tr:hover { background: #f0f8ff; }
+#clients-app tbody tr:last-child td { border-bottom: none; }
+#clients-app .no-rows td {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+}
+#clients-app input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+/* === Estilos locales (consistentes con shipments/clients) === */
+        .routes-app .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .routes-app .count { color: #555; font-size: 14px; }
+
+        .routes-app .search-bar {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding: 14px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08);
+        }
+        .routes-app .search-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 240px;
+        }
+        .routes-app .search-group label {
+            font-size: 11px;
+            color: #666;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .routes-app .search-group input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .routes-app .search-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,.15);
+        }
+        .routes-app .btn-clear {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            background: #e9ecef;
+            color: #333;
+        }
+        .routes-app .btn-clear:hover { background: #d3d7dc; }
+
+        .routes-app .table-wrap {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08);
+        }
+        .routes-app table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        .routes-app thead {
+            background: #007bff;
+            color: white;
+        }
+        .routes-app th {
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            white-space: nowrap;
+        }
+        .routes-app td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        .routes-app tbody tr:hover { background: #f0f8ff; }
+        .routes-app tbody tr:last-child td { border-bottom: none; }
+        .routes-app .no-rows td {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+        }
+        .routes-app .actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .routes-app .actions a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 15px;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+        .routes-app .actions a:hover { background: #e7f1ff; }
+        .routes-app .actions a.disabled {
+            color: #ccc;
+            pointer-events: none;
+        }
+        .routes-app .status-finished   { color: #198754; font-weight: 600; }
+        .routes-app .status-delivering { color: #0d6efd; font-weight: 600; }
+        .routes-app .status-draft      { color: #ffc107; font-weight: 600; }
+
+        /* === Paginación === */
+        .routes-app .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .routes-app .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 38px;
+        }
+        .routes-app .pagination button:hover:not(:disabled):not(.active) {
+            background: #f0f0f0;
+        }
+        .routes-app .pagination button.active {
+            background: #007bff;
+            color: #fff;
+            border-color: #007bff;
+            font-weight: 600;
+        }
+        .routes-app .pagination button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+        .routes-app .pagination select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+.btn-add-route {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: #28a745;
+    transition: background .15s;
+}
+
+.btn-add-route:hover  { background: #1e7e34; }
+.btn-add-route:active { transform: translateY(1px); }
+
+.btn-add-route:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(40,167,69,.35);
+}

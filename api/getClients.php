@@ -31,10 +31,10 @@
     try {
         header('Content-Type: application/json');
 
-    if($status == 'delivering') {
-        $warehouse_status = 'delivering';
-        $warehouse_id = $delivery_id;
-    }
+        if($status == 'delivering') {
+            $warehouse_status = 'delivering';
+            $warehouse_id = $delivery_id;
+        }
         
         if($delivery_id == 0) {
             // Query simple para delivery_id == 0

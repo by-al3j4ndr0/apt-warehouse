@@ -24,7 +24,7 @@
 <html lang="es">
 
 <head>
-    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/deliveries.css">
     <link rel="stylesheet" href="../resources/css/font-awesome-all.css">
     <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
@@ -161,8 +161,8 @@
             </div>
             
             <div class="d-flex flex-column align-items-left">
-                <div id="tableDiv">
-                    <!-- Aquí se cargará dinámicamente la tabla de productos/entregas -->
+                <div id="clients-app">
+                    <div class="loading">Seleccione un origen para ver los clientes</div>
                 </div>
                 <div class="container p-5 d-flex flex-column align-items-right">
                     <button class="btn btn-primary mb-2" type="submit" style="font-weight:bolder;color:white;">

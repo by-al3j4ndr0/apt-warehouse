@@ -1,8 +1,9 @@
 <?php
     $servername = "localhost";
-    $username = "apt_admin";
+    $username = "apt-admin";
     $password = "DCMU7323**";
     $dbname = "apt_warehouse";
+
 
     // Create connection
     $conn = new mysqli($servername, $username, $password, $dbname);

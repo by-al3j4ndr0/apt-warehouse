@@ -149,3 +149,12 @@
             animation: spin 1s linear infinite;
             margin: 20px auto;
         }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }

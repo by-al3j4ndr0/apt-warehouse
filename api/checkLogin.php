@@ -10,13 +10,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Prepare and execute
-    $stmt = $conn->prepare("SELECT `password`, `first_name`, `last_name` FROM auth_user WHERE username = ?");
+    $stmt = $conn->prepare("SELECT `password`, `first_name`, `last_name`, `is_staff`, `origen` FROM auth_user WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-        $stmt->bind_result($db_password, $firstname, $lastname);
+        $stmt->bind_result($db_password, $firstname, $lastname, $staff, $user_origen);
         $stmt->fetch();
 
         $pieces = explode("$", $db_password);
@@ -36,8 +36,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $username;
             $_SESSION['first_name'] = $firstname;
             $_SESSION['last_name'] = $lastname;
-            header("Location: ../index.php");
-            exit();
+            $_SESSION['user_origen'] = $user_origen;
+
+            if ($staff == 1) {
+                header("Location: ../index.php");
+                exit();
+            } else if ($staff == 0) {
+                header("Location: ../visitors/visitors.php");
+                exit();
+            }
+            
         }
         else {
             header("Location: ../login.php");

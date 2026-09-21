@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="../resources/css/font-awesome-all.css">
+    <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../resources/css/visitorsShipments.css">
+    <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport"content="width=device-width, initial-scale=1.0">
+    <title>Almacen</title>
+</head>
+
+<body>
+    <?php include './header.php' ?>
+
+    <div id="app">
+        <div class="loading">Cargando datos...</div>
+    </div>
+
+    <script src="../resources/js/visitorsShipments.js"></script>
+</body>
+</html>

@@ -1,11 +1,16 @@
 <?php
 session_start();
 
-// Check if the user is logged in, if
-// not then redirect them to the login page
+// Verificar sesión
 if (!isset($_SESSION['username'])) {
     header("Location: ../login.php");
     exit();
+} else {
+    if (time() - $_SESSION["login_time_stamp"] > 600) {
+        session_unset();
+        session_destroy();
+        header("Location:login.php");
+    }
 }
 ?>
 

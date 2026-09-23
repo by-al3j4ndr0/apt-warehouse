@@ -36,12 +36,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $username;
             $_SESSION['first_name'] = $firstname;
             $_SESSION['last_name'] = $lastname;
-            $_SESSION['user_origen'] = $user_origen;
+            $_SESSION['is_staff'] = $staff;
+            $_SESSION["login_time_stamp"] = time();
 
             if ($staff == 1) {
                 header("Location: ../index.php");
                 exit();
             } else if ($staff == 0) {
+                $_SESSION['user_origen'] = $user_origen;
                 header("Location: ../visitors/visitors.php");
                 exit();
             }

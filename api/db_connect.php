@@ -1,6 +1,6 @@
 <?php
     $servername = "localhost";
-    $username = "apt-admin";
+    $username = "apt_admin";
     $password = "DCMU7323**";
     $dbname = "apt_warehouse";
 

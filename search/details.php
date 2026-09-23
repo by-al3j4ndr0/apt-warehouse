@@ -1,10 +1,16 @@
 <?php
 session_start();
 
-// Check if the user is logged in
+// Verificar sesión
 if (!isset($_SESSION['username'])) {
     header("Location: ../login.php");
     exit();
+} else {
+    if (time() - $_SESSION["login_time_stamp"] > 600) {
+        session_unset();
+        session_destroy();
+        header("Location:login.php");
+    }
 }
 
 // Validate CI input
@@ -37,7 +43,6 @@ if (isset($_GET['ci'])) {
     <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
     <script src="../resources/js/bootstrap.bundle.min.js"></script>
-    <script src="../resources/js/custom.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport"content="width=device-width, initial-scale=1.0">
     <title>Detalles</title>

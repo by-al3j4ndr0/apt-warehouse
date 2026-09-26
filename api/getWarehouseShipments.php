@@ -77,6 +77,7 @@
             'name'     => 'name',
             'city'     => array_values(array_unique($header_data['city'] ?? [])),
             'state'    => array_values(array_unique($header_data['state'] ?? [])),
+            'manifest' => 'manifest',
             'route_id' => 'route_id',
         ];
         $response['header_data'] = $header_data_clr;

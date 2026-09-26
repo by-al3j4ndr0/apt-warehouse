@@ -141,11 +141,8 @@
 #shipments-search-app tbody tr:last-child td,
 #clients-search-app tbody tr:last-child td { border-bottom: none; }
 
-#shipments-search-app a.row-link,
-#clients-search-app a.row-link {
+.row-link {
     color: #333;
     text-decoration: none;
     font-weight: 500;
 }
-#shipments-search-app a.row-link:hover,
-#clients-search-app a.row-link:hover { text-decoration: underline; }

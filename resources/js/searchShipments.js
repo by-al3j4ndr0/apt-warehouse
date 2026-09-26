@@ -10,11 +10,11 @@
     const ROOT_ID = 'shipments-search-app';
 
     const COLUMNS = [
-        { key: 'origen',   label: 'Agencia'     },
-        { key: 'hbl',      label: 'HBL'         },
+        { key: 'origen',   label: 'Agencia' },
+        { key: 'hbl',      label: 'HBL', link: 'hbl' },
         { key: 'name',     label: 'Nombre', link: 'ci' },
-        { key: 'route_id', label: 'Ruta',       align: 'center' },
-        { key: 'status',   label: 'Estado'      },
+        { key: 'route_id', label: 'Ruta', align: 'center' },
+        { key: 'status',   label: 'Estado' },
         { key: 'manifest', label: 'Manifiesto', align: 'center' },
     ];
 
@@ -190,7 +190,7 @@
                             if (col.link && row[col.link]) {
                                 cell = `
                                     <a class="row-link"
-                                       href="./details.php?ci=${encodeURIComponent(row[col.link])}">
+                                       href="../api/getCorrectDirection.php?id=${encodeURIComponent(row[col.link])}&type=${esc(col.key)}">
                                         ${esc(value)}
                                     </a>
                                 `;

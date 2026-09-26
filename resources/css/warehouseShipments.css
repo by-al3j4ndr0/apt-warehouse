@@ -168,3 +168,9 @@
   }
   .error { color: #c00; }
   .no-rows td { text-align: center; padding: 30px; color: #888; }
+
+  .row-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}

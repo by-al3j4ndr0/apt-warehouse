@@ -64,10 +64,4 @@ function getClientShipments(string $ci) {
     }
 }
 
-function editClient(string $ci) {
-    include '../api/db_connect.php';
-
-    global $client_name, $client_ci, $client_phone, $client_address, $client_city, $client_state;
-}
-
 ?>

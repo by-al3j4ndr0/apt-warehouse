@@ -3,13 +3,22 @@
  * ================================================================ */
 const API_URL = '../api/getWarehouseShipments.php';
 const LOCATION = 'warehouse';
-const COLUMNS = ['origen', 'hbl', 'name', 'city', 'state', 'route_id'];
+const COLUMNS = [
+        { key: 'origen',   label: 'Agencia' },
+        { key: 'hbl',      label: 'HBL', link: 'hbl' },
+        { key: 'name',     label: 'Nombre', link: 'ci' },
+        { key: 'city', label: 'Municipio' },
+        { key: 'state',   label: 'Provincia' },
+        { key: 'manifest', label: 'Manifiesto', align: 'center' },
+        { key: 'route_id', label: 'Route ID', link: 'route_id', align: 'center' },
+    ];
 const COLUMN_LABELS = {
   origen: 'Origen',
   hbl: 'HBL',
   name: 'Nombre',
   city: 'Municipio',
   state: 'Provincia',
+  manifest: 'Manifiesto',
   route_id: 'Route ID',
 };
 
@@ -231,14 +240,13 @@ function renderTable() {
     <thead>
       <tr>
         ${COLUMNS.map(col => {
-          const isSorted = state.sortBy === col;
+          const isSorted = state.sortBy === col.key;
           const arrow = isSorted ? (state.sortDir === 'asc' ? '▲' : '▼') : '⇅';
           return `
-            <th class="sortable ${isSorted ? 'sorted' : ''}" data-col="${col}">
-              ${esc(COLUMN_LABELS[col] || col)}
+            <th class="sortable ${isSorted ? 'sorted' : ''}" data-col="${col.key}">
+              ${esc(col.label)}
               <span class="sort-arrow">${arrow}</span>
-            </th>
-          `;
+            </th>`;
         }).join('')}
       </tr>
     </thead>
@@ -259,9 +267,15 @@ function renderTable() {
       <tbody>
         ${pageRows.map(row => `
           <tr>
-            ${COLUMNS.map(col => `<td>${esc(row[col])}</td>`).join('')}
-          </tr>
-        `).join('')}
+            ${COLUMNS.map(col => {
+              const value = row[col.key];
+              const align = col.align ? `style="text-align:${col.align}"` : '';
+              let cell = col.link && row[col.link]
+                ? `<a class="row-link" href="../api/getCorrectDirection.php?id=${encodeURIComponent(row[col.link])}&type=${esc(col.link)}">${esc(value)}</a>`
+                : esc(value);
+              return `<td ${align}>${cell}</td>`;
+            }).join('')}
+          </tr>`).join('')}
       </tbody>
     `;
   }
@@ -367,7 +381,7 @@ function exportCSV() {
   }
 
   // Encabezados legibles
-  const headers = COLUMNS.map(c => COLUMN_LABELS[c] || c);
+  const headers = COLUMNS.map(c => c.label);
 
   // Escapar valores para CSV (comillas dobles + comillas duplicadas)
   const escapeCSV = value => {
@@ -377,7 +391,7 @@ function exportCSV() {
 
   const lines = [
     headers.map(escapeCSV).join(','),
-    ...rows.map(row => COLUMNS.map(c => escapeCSV(row[c])).join(',')),
+    ...rows.map(row => COLUMNS.map(c => escapeCSV(row[c.key])).join(',')),
   ];
 
   // BOM para que Excel respete UTF-8

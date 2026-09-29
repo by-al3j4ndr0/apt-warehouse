@@ -188,7 +188,7 @@
                             if (col.link && row[col.link]) {
                                 cell = `
                                     <a class="row-link"
-                                       href="../api/getCorrectDirection.php?id=${encodeURIComponent(row[col.link])}&type=${esc(col.key)}">
+                                       href="../api/getCorrectDirection.php?id=${encodeURIComponent(row[col.link])}&type=${esc(col.link)}">
                                         ${esc(value)}
                                     </a>
                                 `;

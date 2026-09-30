@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Initialize variables and validate input
     $errors = [];
-    $requiredFields = ['deliveryId', 'driver', 'vehicule', 'origen'];
+    $requiredFields = ['deliveryId', 'name', 'driver', 'vehicule', 'origen'];
     
     foreach ($requiredFields as $field) {
         if (!isset($_POST[$field]) || (is_array($_POST[$field]) && count($_POST[$field]) === 0) || (!is_array($_POST[$field]) && trim($_POST[$field]) === '')) {
@@ -32,6 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Sanitize and prepare data - TREAT AS INTEGERS
     $id = intval($_POST['deliveryId']);
+    $name = $_POST['name'];
     $driver = intval($_POST['driver']);  // Driver as integer (ID)
     $vehicule = intval($_POST['vehicule']);  // Vehicule as integer (ID)
     $origen = intval($_POST['origen']);  // Origen as integer
@@ -164,6 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Update delivery record with integer values
         $update_stmt = $conn->prepare("UPDATE `delivery` SET 
+                                    `name` = ?,
                                     `driver` = ?,
                                     `vehicule` = ?,
                                     `shipments` = ?,
@@ -176,7 +178,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         
         // Bind parameters: driver (int), vehicule (int), shipments (string), status (string), origen (int), id (int)
-        $update_stmt->bind_param("iissii", $driver, $vehicule, $clients_string, $status, $origen, $id);
+        $update_stmt->bind_param("siissii", $name, $driver, $vehicule, $clients_string, $status, $origen, $id);
         
         if (!$update_stmt->execute()) {
             throw new Exception("Execute failed for update: " . $update_stmt->error);

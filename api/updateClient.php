@@ -1,7 +1,10 @@
 <?php 
-    session_start();
-    include './db_connect.php';
+    require_once __DIR__ . '/auth.php';
+    require_once __DIR__ . '/db_connect.php';
+    requireLogin(true);
+    requireCsrf();
 
+    $originalClientCI = $_POST['original_client_ci'] ?? $_POST['client_ci'];
     $clientCI = $_POST['client_ci'];
     $clientName = $_POST['client_name'];
     $clientPhone = $_POST['client_phone'];
@@ -11,7 +14,7 @@
 
     try {
         $updateClient_stmt = $conn->prepare("UPDATE `clients` SET `ci` = ?, `name` = ?, `phone` = ?, `address` = ?, `city` = ?, `state` = ? WHERE `ci` = ?");
-        $updateClient_stmt->bind_param("sssssss", $clientCI, $clientName, $clientPhone, $clientAddress, $clientCity, $clientState, $clientCI);
+        $updateClient_stmt->bind_param("sssssss", $clientCI, $clientName, $clientPhone, $clientAddress, $clientCity, $clientState, $originalClientCI);
         $updateClient_stmt->execute();
 
         header("Location: ../search/details.php?ci=" . $clientCI);

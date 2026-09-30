@@ -7,6 +7,9 @@ function startSecureSession(): void {
         return;
     }
 
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.use_strict_mode', '1');
+
     $secureEnv = getenv('SESSION_SECURE_COOKIE');
     $secure = $secureEnv !== false
         ? filter_var($secureEnv, FILTER_VALIDATE_BOOLEAN)
@@ -62,6 +65,12 @@ function isSessionValid(): bool {
 
 function requireLogin(bool $staffOnly = false): void {
     startSecureSession();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
     if (!isSessionValid()) {
         destroySession();
@@ -78,6 +87,12 @@ function requireLogin(bool $staffOnly = false): void {
 
 function requireApiLogin(bool $staffOnly = false): void {
     startSecureSession();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('X-Content-Type-Options: nosniff');
+        header('X-Frame-Options: SAMEORIGIN');
+        header('Referrer-Policy: strict-origin-when-cross-origin');
+        header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
     if (!isSessionValid()) {
         http_response_code(401);

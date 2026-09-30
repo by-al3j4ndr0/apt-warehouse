@@ -58,6 +58,7 @@ $statusList = getStatusList();
             <h1>Editar Envio</h1>
         </div>
         <form method="POST" action="../api/updateShipment.php">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8'); ?>">
             <div class="form-control">
                 <div class="row p-2">
                     <div class="col">

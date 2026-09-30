@@ -2,18 +2,6 @@
 require_once __DIR__ . '/../api/auth.php';
 requireLogin(true);
 
-// Verificar sesión
-if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
-    exit();
-} else {
-    if (time() - $_SESSION["login_time_stamp"] > 600) {
-        session_unset();
-        session_destroy();
-        header("Location: ../login.php");
-    }
-}
-
 // Validate CI input
 if (isset($_GET['hbl'])) {
     $hbl = $_GET['hbl'];
@@ -78,41 +66,41 @@ if (isset($_GET['hbl'])) {
     <div class="row">
         <div class="col container p-5 align-items-left">
             <div class="row p-2">
-                <h2><label class=""><?php echo $shipment_hbl ?></label></h2>
+                <h2><label class=""><?php echo htmlspecialchars($shipment_hbl, ENT_QUOTES, 'UTF-8'); ?></label></h2>
             </div>
             <div class="row p-2">
                 <div class="col">
-                    <h5><label class="">Cliente: <?php echo $shipment_owner_name ?></label></h5>
+                    <h5><label class="">Cliente: <?php echo htmlspecialchars($shipment_owner_name, ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
                 <div class="col">
-                    <h5><label class="">CI: <?php echo $shipment_owner_ci ?></label></h5>
+                    <h5><label class="">CI: <?php echo htmlspecialchars($shipment_owner_ci, ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
                 <div class="col">
-                    <h5><label class="">Origen: <?php echo getInfoById($shipment_origen, 'origen')['name'] ?></label></h5>
-                </div>
-            </div>
-            <div class="row p-2">
-                <div class="col">
-                    <h5><label class="">Peso: <?php echo $shipment_weight ?></label></h5>
-                </div>
-                <div class="col">
-                    <h5><label class="">Arancel: <?php echo $shipment_tariff ?></label></h5>
+                    <h5><label class="">Origen: <?php echo htmlspecialchars(getInfoById($shipment_origen, 'origen')['name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
             </div>
             <div class="row p-2">
                 <div class="col">
-                    <h5><label class="">Manifiesto: <?php echo $shipment_manifest ?></label></h5>
+                    <h5><label class="">Peso: <?php echo htmlspecialchars($shipment_weight, ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
                 <div class="col">
-                    <h5><label class="">Estado: <?php echo getStatusList()[$shipment_status_raw] ?></label></h5>
-                </div>
-                <div class="col">
-                    <h5><label class="">Ruta: <?php echo $shipment_route_id ?></label></h5>
+                    <h5><label class="">Arancel: <?php echo htmlspecialchars($shipment_tariff, ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
             </div>
             <div class="row p-2">
                 <div class="col">
-                    <h5><label class="">Descripcion: <?php echo $shipment_description ?></label></h5>
+                    <h5><label class="">Manifiesto: <?php echo htmlspecialchars($shipment_manifest, ENT_QUOTES, 'UTF-8'); ?></label></h5>
+                </div>
+                <div class="col">
+                    <h5><label class="">Estado: <?php echo htmlspecialchars(getStatusList()[$shipment_status_raw] ?? $shipment_status_raw, ENT_QUOTES, 'UTF-8'); ?></label></h5>
+                </div>
+                <div class="col">
+                    <h5><label class="">Ruta: <?php echo htmlspecialchars($shipment_route_id, ENT_QUOTES, 'UTF-8'); ?></label></h5>
+                </div>
+            </div>
+            <div class="row p-2">
+                <div class="col">
+                    <h5><label class="">Descripcion: <?php echo htmlspecialchars($shipment_description, ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
             </div>
             <div class="row p-2">

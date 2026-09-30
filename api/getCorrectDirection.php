@@ -1,6 +1,6 @@
 <?php
-
-    session_start();
+    require_once __DIR__ . '/auth.php';
+    requireLogin(true);
 
     // Validar y obtener el tipo
     $typo = isset($_GET['type']) ? $_GET['type'] : '';

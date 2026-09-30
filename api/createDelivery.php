@@ -1,5 +1,8 @@
 <?php
-include 'db_connect.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/db_connect.php';
+requireLogin(true);
+requireCsrf();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Initialize variables
@@ -52,8 +55,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Prepare update statement for shipments
         $updateStmt = $conn->prepare("UPDATE `shipments` 
                                       SET `status` = ?, `route_id` = ? 
-                                      WHERE `ci` = ? AND `status` = 'warehouse'");
-        $updateStmt->bind_param("sis", $status, $id, $client_id);
+                                      WHERE `ci` = ? AND `status` = 'warehouse' AND `origen` = ?");
+        $updateStmt->bind_param("sisi", $status, $id, $client_id, $origen);
 
         // Process each client
         foreach ($_POST['clients'] as $client) {

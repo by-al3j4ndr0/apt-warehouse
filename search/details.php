@@ -2,18 +2,6 @@
 require_once __DIR__ . '/../api/auth.php';
 requireLogin(true);
 
-// Verificar sesión
-if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
-    exit();
-} else {
-    if (time() - $_SESSION["login_time_stamp"] > 600) {
-        session_unset();
-        session_destroy();
-        header("Location: ../login.php");
-    }
-}
-
 // Validate CI input
 if (isset($_GET['ci'])) {
     $ci = filter_input(INPUT_GET, 'ci', FILTER_SANITIZE_STRING);
@@ -77,14 +65,14 @@ if (isset($_GET['ci'])) {
     <div class="row">
         <div class="col container p-5 align-items-left">
             <div class="row p-2">
-                <h2><label class=""><?php echo $client_name ?></label></h2>
+                <h2><label class=""><?php echo htmlspecialchars($client_name, ENT_QUOTES, 'UTF-8'); ?></label></h2>
             </div>
             <div class="row p-2">
                 <div class="col">
-                    <h5><label class="">CI: <?php echo $client_ci ?></label></h5>
+                    <h5><label class="">CI: <?php echo htmlspecialchars($client_ci, ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
                 <div class="col">
-                    <h5><label class="">Teléfono: <?php echo $client_phone ?></label></h5>
+                    <h5><label class="">Teléfono: <?php echo htmlspecialchars($client_phone, ENT_QUOTES, 'UTF-8'); ?></label></h5>
                 </div>
             </div>
             <div class="row flex p-2">

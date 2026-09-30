@@ -23,7 +23,7 @@ $warningLog = [];
 try {
     // Verificar si se recibió archivo
     if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['archivo'])) {
-        throw new Exception('No se recibió ningún archivo');
+        throw new Exception('No se recibió ningún archivo', 400);
     }
     
     $file = $_FILES['archivo'];
@@ -40,27 +40,27 @@ try {
             UPLOAD_ERR_EXTENSION => 'Extensión de archivo no permitida'
         ];
         $errorMsg = isset($uploadErrors[$file['error']]) ? $uploadErrors[$file['error']] : 'Error desconocido';
-        throw new Exception($errorMsg);
+        throw new Exception($errorMsg, 400);
     }
     
     // Validate both MIME signature and extension. Never trust the client-supplied MIME type.
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($extension, ['csv', 'txt'], true)) {
-        throw new Exception('Tipo de archivo no permitido. Solo se permiten archivos CSV o TXT.');
+        throw new Exception('Tipo de archivo no permitido. Solo se permiten archivos CSV o TXT.', 400);
     }
 
     $fileType = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
     if ($fileType === false || !in_array($fileType, $allowedTypes, true)) {
-        throw new Exception('El contenido del archivo no corresponde a un CSV/TXT permitido.');
+        throw new Exception('El contenido del archivo no corresponde a un CSV/TXT permitido.', 400);
     }
 
     if (!is_uploaded_file($file['tmp_name'])) {
-        throw new Exception('La carga del archivo no es válida.');
+        throw new Exception('La carga del archivo no es válida.', 400);
     }
     
     // Validar tamaño
     if ($file['size'] > $maxFileSize) {
-        throw new Exception('El archivo es demasiado grande. Máximo ' . ($maxFileSize / 1024 / 1024) . 'MB');
+        throw new Exception('El archivo es demasiado grande. Máximo ' . ($maxFileSize / 1024 / 1024) . 'MB', 413);
     }
     
     // Create the storage directory with restrictive permissions.
@@ -75,7 +75,7 @@ try {
 
     // Generate an opaque server-side filename; never reuse the client filename.
 
-    $fileName = date('Ymd_His') . '_' . uniqid() . '.' . $extension;
+    $fileName = date('Ymd_His') . '_' . bin2hex(random_bytes(16)) . '.' . $extension;
     $targetFile = $targetDir . $fileName;
     
     // Mover archivo subido
@@ -125,6 +125,13 @@ try {
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
+    // Return an HTTP error instead of reporting validation failures as HTTP 200.
+    $statusCode = (int) $e->getCode();
+    if (!in_array($statusCode, [400, 413, 500], true)) {
+        $statusCode = 500;
+    }
+    http_response_code($statusCode);
+
     // Limpiar archivo temporal en caso de error
     if (isset($targetFile) && file_exists($targetFile)) {
         unlink($targetFile);

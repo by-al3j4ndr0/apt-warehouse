@@ -7,7 +7,10 @@ function startSecureSession(): void {
         return;
     }
 
-    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    $secureEnv = getenv('SESSION_SECURE_COOKIE');
+    $secure = $secureEnv !== false
+        ? filter_var($secureEnv, FILTER_VALIDATE_BOOLEAN)
+        : (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
@@ -42,8 +45,19 @@ function destroySession(): void {
 }
 
 function isSessionValid(): bool {
-    return isset($_SESSION['username'], $_SESSION['login_time_stamp'])
-        && (time() - (int) $_SESSION['login_time_stamp']) <= 600;
+    if (!isset($_SESSION['username'], $_SESSION['login_time_stamp'])) {
+        return false;
+    }
+
+    $now = time();
+    $lastActivity = (int) ($_SESSION['last_activity'] ?? $_SESSION['login_time_stamp']);
+
+    if ($now - $lastActivity > 600) {
+        return false;
+    }
+
+    $_SESSION['last_activity'] = $now;
+    return true;
 }
 
 function requireLogin(bool $staffOnly = false): void {

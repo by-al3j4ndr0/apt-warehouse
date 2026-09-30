@@ -1,5 +1,6 @@
 <?php
-    session_start();
+    require_once __DIR__ . '/../api/auth.php';
+    requireLogin(true);
 
     // Verificar sesión
     if (!isset($_SESSION['username'])) {

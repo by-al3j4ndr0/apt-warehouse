@@ -1,6 +1,10 @@
 <?php
-session_start();
-include 'db_connect.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/db_connect.php';
+requireLogin(true);
+requireCsrf();
+
+if ($_SERVER["REQUEST_METHOD"] !== "POST") { http_response_code(405); exit('Method Not Allowed'); }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Enable error logging
@@ -37,6 +41,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vehicule = intval($_POST['vehicule']);  // Vehicule as integer (ID)
     $origen = intval($_POST['origen']);  // Origen as integer
     $status = trim($_POST['status'] ?? 'delivering');
+
+    $allowedStatuses = ['draft', 'delivering', 'finished'];
+    if (!in_array($status, $allowedStatuses, true)) {
+        $_SESSION['error_message'] = 'Estado de ruta inválido.';
+        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        exit();
+    }
+
+    $routeCheck = $conn->prepare("SELECT status, origen FROM delivery WHERE id = ? FOR UPDATE");
+    $routeCheck->bind_param('i', $id);
+    $routeCheck->execute();
+    $currentRoute = $routeCheck->get_result()->fetch_assoc();
+    $routeCheck->close();
+
+    if (!$currentRoute) {
+        $_SESSION['error_message'] = 'Ruta no encontrada.';
+        header('Location: ../delivery/deliveries.php');
+        exit();
+    }
+
+    $validTransitions = [
+        'draft' => ['draft', 'delivering'],
+        'delivering' => ['delivering', 'finished'],
+        'finished' => ['finished']
+    ];
+
+    if (!in_array($status, $validTransitions[$currentRoute['status']] ?? [], true)) {
+        $_SESSION['error_message'] = 'Transición de estado de ruta no permitida.';
+        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        exit();
+    }
+
+    $assignedCountStmt = $conn->prepare("SELECT COUNT(*) AS total FROM shipments WHERE route_id = ?");
+    $assignedCountStmt->bind_param('i', $id);
+    $assignedCountStmt->execute();
+    $assignedCount = (int) $assignedCountStmt->get_result()->fetch_assoc()['total'];
+    $assignedCountStmt->close();
+
+    if ($assignedCount > 0 && (int)$currentRoute['origen'] !== $origen) {
+        $_SESSION['error_message'] = 'No se puede cambiar el origen de una ruta que ya tiene envíos.';
+        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        exit();
+    }
+
+    if ($currentRoute['status'] === 'finished' && $status === 'finished') {
+        $status = 'finished';
+    }
     
     // Get selected clients (those that are checked) - clients are strings (CI)
     $clients_after = array_map('trim', $_POST['clients']);

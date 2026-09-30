@@ -1,15 +1,26 @@
 <?php
-    session_start();
+    require_once __DIR__ . '/auth.php';
+    requireApiLogin(false);
 
     // Configurar cabeceras
     header('Content-Type: application/json');
 
     $request = json_decode(file_get_contents('php://input'), true);
 
-    $is_staff = $request['is_staff'];
+    $is_staff = (int) ($_SESSION['is_staff'] ?? 0);
+    if ($is_staff === 1) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Visitor endpoint only']);
+        exit;
+    }
 
-    if($is_staff == 'false'){
-        $user_origen = $_SESSION['user_origen'];
+    if ($is_staff !== 1) {
+        $user_origen = $_SESSION['user_origen'] ?? null;
+        if ($user_origen === null) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Origen no configurado']);
+            exit;
+        }
     }
 
     // Conectar a la base de datos

@@ -208,31 +208,7 @@ function exportRoute(int $delivery_id) {
                         <td colspan="2"></td>
                         <td class="align-items-right">Total:</td>
                         <td><?php echo htmlspecialchars($delivery_data['total_shipments'], ENT_QUOTES, 'UTF-8'); ?></td>
-                        <td><?php echo '</td>
-                    </tr>
-                </tbody>
-            </table>
-    </div>
-    <div class="p-5 d-flex flex-column align-items-left">
-        <div class="p-3 row">
-            <div class="col">
-                <h5>Emite: <?php echo htmlspecialchars($_SESSION['first_name'] . " " . $_SESSION['last_name'], ENT_QUOTES, 'UTF-8') ?></h5>
-            </div>
-            <div class="col">
-                
-            </div>
-            <div class="col">
-                <h5>Entrega: </h5>
-            </div>
-        </div>
-    </div>
-    <?php
-
-}
-
-    ?>
-</body>
-</html> . htmlspecialchars($delivery_data['total_tariff'], ENT_QUOTES, 'UTF-8'); ?></td>
+                        <td><?php echo "$" . htmlspecialchars($delivery_data['total_tariff'], ENT_QUOTES, 'UTF-8'); ?></td>
                     </tr>
                 </tbody>
             </table>

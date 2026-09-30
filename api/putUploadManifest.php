@@ -1,5 +1,8 @@
 <?php
-include '../api/db_connect.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/db_connect.php';
+requireLogin(true);
+requireCsrf();
 
 // Configuración
 $targetDir = "../uploads/";

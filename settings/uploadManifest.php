@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../api/auth.php';
+requireLogin(true);
 
 // Verificar sesión
 if (!isset($_SESSION['username'])) {
@@ -27,6 +28,7 @@ if (!isset($_SESSION['username'])) {
     <meta charset="UTF-8">
     <meta name="viewport"content="width=device-width, initial-scale=1.0">
     <title>Subir Manifiestos</title>
+<script>window.csrfToken = <?php echo json_encode(csrfToken()); ?>;</script>
 </head>
 
 <body>

@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../api/auth.php';
+requireLogin(true);
 
 // Verificar sesión
 if (!isset($_SESSION['username'])) {
@@ -187,12 +188,15 @@ if (!isset($_SESSION['username'])) {
                                            title="Imprimir">
                                             <i class="fa fa-print"></i>
                                         </a>
-                                        <a href="../api/deleteDelivery.php?id=<?php echo (int) $delivery['id'] ?>"
-                                           class="<?php echo $canDelete ? '' : 'disabled' ?>"
-                                           title="Eliminar"
-                                           onclick="return confirm('¿Eliminar esta ruta?');">
-                                            <i class="fa fa-trash"></i>
-                                        </a>
+                                        <?php if ($canDelete): ?>
+                                            <form method="post" action="../api/deleteDelivery.php" style="display:inline" onsubmit="return confirm('¿Eliminar esta ruta?');">
+                                                <input type="hidden" name="id" value="<?php echo (int) $delivery['id'] ?>">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8'); ?>">
+                                                <button type="submit" class="btn btn-link p-0" title="Eliminar"><i class="fa fa-trash"></i></button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="disabled" title="Eliminar"><i class="fa fa-trash"></i></span>
+                                        <?php endif; ?>
                                         <a href="../api/exportRouteInfo.php?id=<?php echo (int) $delivery['id'] ?>"
                                            title="Exportar">
                                             <i class="fa fa-external-link"></i>

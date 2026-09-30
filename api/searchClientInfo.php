@@ -1,7 +1,8 @@
 <?php
-    include '../api/db_connect.php';
-
-    $request = json_decode(file_get_contents('php://input'), true);
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/db_connect.php';
+requireApiLogin(true);
+$request = json_decode(file_get_contents('php://input'), true);
 
     // Validar que el parámetro existe
     if (!isset($request['search_param']) || empty($request['search_param'])) {

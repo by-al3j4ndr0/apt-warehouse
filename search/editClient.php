@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../api/auth.php';
+requireLogin(true);
 
 // Verificar sesión
 if (!isset($_SESSION['username'])) {
@@ -54,6 +55,8 @@ if (isset($_GET['ci'])) {
             <h1>Editar Cliente</h1>
         </div>
         <form method="POST" action="../api/updateClient.php">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" name="original_client_ci" value="<?php echo htmlspecialchars($client_ci, ENT_QUOTES, 'UTF-8'); ?>">
             <div class="form-control">
                 <div class="row p-2">
                     <div class="col">

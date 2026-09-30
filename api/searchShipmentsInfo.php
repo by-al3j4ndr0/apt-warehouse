@@ -1,6 +1,8 @@
 <?php
-    include '../api/db_connect.php';
-    include '../api/getInfoById.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/db_connect.php';
+requireApiLogin(true);
+include '../api/getInfoById.php';
 
     $request = json_decode(file_get_contents('php://input'), true);
 

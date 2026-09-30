@@ -43,14 +43,19 @@ try {
         throw new Exception($errorMsg);
     }
     
-    // Validar tipo de archivo
-    $fileType = mime_content_type($file['tmp_name']);
-    if (!in_array($fileType, $allowedTypes)) {
-        // Intentar detectar por extensión como fallback
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, ['csv', 'txt'])) {
-            throw new Exception('Tipo de archivo no permitido. Solo se permiten archivos CSV (extensión .csv)');
-        }
+    // Validate both MIME signature and extension. Never trust the client-supplied MIME type.
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($extension, ['csv', 'txt'], true)) {
+        throw new Exception('Tipo de archivo no permitido. Solo se permiten archivos CSV o TXT.');
+    }
+
+    $fileType = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    if ($fileType === false || !in_array($fileType, $allowedTypes, true)) {
+        throw new Exception('El contenido del archivo no corresponde a un CSV/TXT permitido.');
+    }
+
+    if (!is_uploaded_file($file['tmp_name'])) {
+        throw new Exception('La carga del archivo no es válida.');
     }
     
     // Validar tamaño
@@ -58,15 +63,18 @@ try {
         throw new Exception('El archivo es demasiado grande. Máximo ' . ($maxFileSize / 1024 / 1024) . 'MB');
     }
     
-    // Crear directorio si no existe
-    if (!file_exists($targetDir)) {
-        if (!mkdir($targetDir, 0777, true)) {
+    // Create the storage directory with restrictive permissions.
+    if (!is_dir($targetDir)) {
+        if (!mkdir($targetDir, 0750, true)) {
             throw new Exception('No se pudo crear el directorio de uploads');
         }
     }
-    
-    // Generar nombre único
-    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!is_writable($targetDir)) {
+        throw new Exception('El directorio de uploads no es escribible.');
+    }
+
+    // Generate an opaque server-side filename; never reuse the client filename.
+
     $fileName = date('Ymd_His') . '_' . uniqid() . '.' . $extension;
     $targetFile = $targetDir . $fileName;
     
@@ -194,7 +202,6 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
     
     // Configuración
     $conn->set_charset("utf8mb4");
-    $conn->query("SET SESSION sql_mode = ''");
     $conn->query("SET SESSION wait_timeout = 600");
     
     $stats = ['shipments' => 0, 'clients' => 0, 'total' => 0, 'duplicates' => 0];
@@ -362,8 +369,12 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                     implode(' | ', array_slice($errorLog, -3)));
             }
             
-            // Guardar errores en log
-            $logFile = '../logs/import_errors_' . date('Y-m-d') . '.log';
+            // Save import errors outside the public uploads area.
+            $logDir = __DIR__ . '/../logs';
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0750, true);
+            }
+            $logFile = $logDir . '/import_errors_' . date('Y-m-d') . '.log';
             foreach ($errorLog as $error) {
                 error_log("[" . date('Y-m-d H:i:s') . "] $error\n", 3, $logFile);
             }

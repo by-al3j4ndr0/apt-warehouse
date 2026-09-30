@@ -52,6 +52,17 @@ try {
         $duplicate->close();
     }
 
+    // Keep shipment ownership consistent when the CI changes.
+    // Update children first so restrictive foreign keys can remain valid.
+    if ($clientCI !== $originalClientCI) {
+        $updateShipments = $conn->prepare("UPDATE shipments SET ci = ? WHERE ci = ?");
+        $updateShipments->bind_param('ss', $clientCI, $originalClientCI);
+        if (!$updateShipments->execute()) {
+            throw new Exception('No se pudo actualizar la propiedad de los envíos');
+        }
+        $updateShipments->close();
+    }
+
     $updateClient = $conn->prepare(
         "UPDATE clients
          SET ci = ?, name = ?, phone = ?, address = ?, city = ?, state = ?
@@ -65,16 +76,6 @@ try {
         throw new Exception('No se pudo actualizar el cliente');
     }
     $updateClient->close();
-
-    // Keep shipment ownership consistent when the CI changes.
-    if ($clientCI !== $originalClientCI) {
-        $updateShipments = $conn->prepare("UPDATE shipments SET ci = ? WHERE ci = ?");
-        $updateShipments->bind_param('ss', $clientCI, $originalClientCI);
-        if (!$updateShipments->execute()) {
-            throw new Exception('No se pudo actualizar la propiedad de los envíos');
-        }
-        $updateShipments->close();
-    }
 
     $conn->commit();
     header('Location: ../search/details.php?ci=' . urlencode($clientCI));

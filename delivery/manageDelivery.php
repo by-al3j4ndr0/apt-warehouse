@@ -96,6 +96,7 @@
         <?php endif; ?>
         
         <form action="<?php echo $formActionHref ?>" method="post">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8'); ?>">
             <input type="hidden" id="deliveryId" name="deliveryId" value="<?php echo $deliveryId ?>">
             <div class="form-control">
                 <div class="row p-2">

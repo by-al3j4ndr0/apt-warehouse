@@ -2,20 +2,12 @@
 require_once __DIR__ . '/../api/auth.php';
 requireLogin(true);
 
-// Verificar sesión
-if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
-    exit();
-} else {
-    if (time() - $_SESSION["login_time_stamp"] > 600) {
-        session_unset();
-        session_destroy();
-        header("Location: ../login.php");
-    }
+if (!isset($_GET['id']) || !ctype_digit((string) $_GET['id']) || (int) $_GET['id'] < 1) {
+    http_response_code(400);
+    exit('Invalid route ID');
 }
 
-if (isset($_GET['id']))
-    exportRoute($_GET['id']);
+exportRoute((int) $_GET['id']);
 
 function clientRouteSort($key, $order = null) {
     return function ($a, $b) use ($key, $order) {
@@ -43,6 +35,11 @@ function exportRoute(int $delivery_id) {
         $delivery_result = $delivery_stmt->get_result();
         $delivery_data = $delivery_result->fetch_assoc();
 
+        if (!$delivery_data) {
+            http_response_code(404);
+            exit('Route not found');
+        }
+
         $name = $delivery_data['name'];
         $status = $delivery_data['status'];
         $driver_id = $delivery_data['driver'];
@@ -69,7 +66,7 @@ function exportRoute(int $delivery_id) {
 <html>
     <head>
         <meta charset="utf-8" />
-        <title><?php echo $name ?></title>
+        <title><?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></title>
         <link type="text/css" rel="stylesheet" href="../resources/css/bootstrap.min.css">
         <link type="text/css" rel="stylesheet" href="../resources/css/custom.css">
     </head>
@@ -80,7 +77,7 @@ function exportRoute(int $delivery_id) {
                 <img src="../resources/img/logo.png" class="rounded float-left" height="60" width="159">
             </div>
             <div class="col">
-                <h3><?php echo getInfoById($origen_id, 'origen')['name'] ?></h3>
+                <h3><?php echo htmlspecialchars(getInfoById($origen_id, 'origen')['name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></h3>
             </div>
         </div>
     </div>
@@ -94,7 +91,7 @@ function exportRoute(int $delivery_id) {
                     </div>
                     <div class="col">
                         <label class="col-sm-3 col-form-label font-weight-bold"><b>Chofer</b></label>
-                        <label class="font-weight-bold"><?php echo getInfoById($driver_id, 'driver')['name'] ?></label>
+                        <label class="font-weight-bold"><?php echo htmlspecialchars(getInfoById($driver_id, 'driver')['name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></label>
                     </div>
                     <div class="col">
                         <label class="col-sm-3 col-form-label font-weight-bold"><b>Fecha</b></label> 
@@ -108,18 +105,18 @@ function exportRoute(int $delivery_id) {
                     </div>
                     <div class="col">
                         <label class="col-sm-3 col-form-label font-weight-bold"><b>Licencia</b></label> 
-                        <label class="col-sm-3 col-form-label"><?php echo getInfoById($driver_id, 'driver')['ci'] ?></label>
+                        <label class="col-sm-3 col-form-label"><?php echo htmlspecialchars(getInfoById($driver_id, 'driver')['ci'] ?? '', ENT_QUOTES, 'UTF-8'); ?></label>
                     </div>
                     <div class="col">
                         <label class="col-sm-3 col-form-label font-weight-bold"><b>Matricula</b></label>
-                        <label class="col-sm-3 col-form-label font-weight-bold"><?php echo getInfoById($vehicule_id, 'vehicule')['matriculate'] ?></label> 
+                        <label class="col-sm-3 col-form-label font-weight-bold"><?php echo htmlspecialchars(getInfoById($vehicule_id, 'vehicule')['matriculate'] ?? '', ENT_QUOTES, 'UTF-8'); ?></label> 
                     </div>
                 </div>
             </div>    
         </div>
     </div>
     <div class="p-4 d-flex flex-column align-items-center" id="subheader3">
-        <h4><b><?php echo $name ?></b></h4>
+        <h4><b><?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></b></h4>
     </div>
     <div class="d-flex flex-column align-items-center">
             <table id="table">
@@ -210,8 +207,32 @@ function exportRoute(int $delivery_id) {
                     <tr class="total-footer">
                         <td colspan="2"></td>
                         <td class="align-items-right">Total:</td>
-                        <td><?php echo $delivery_data['total_shipments'] ?></td>
-                        <td><?php echo "$" . $delivery_data['total_tariff'] ?></td>
+                        <td><?php echo htmlspecialchars($delivery_data['total_shipments'], ENT_QUOTES, 'UTF-8'); ?></td>
+                        <td><?php echo '</td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    <div class="p-5 d-flex flex-column align-items-left">
+        <div class="p-3 row">
+            <div class="col">
+                <h5>Emite: <?php echo htmlspecialchars($_SESSION['first_name'] . " " . $_SESSION['last_name'], ENT_QUOTES, 'UTF-8') ?></h5>
+            </div>
+            <div class="col">
+                
+            </div>
+            <div class="col">
+                <h5>Entrega: </h5>
+            </div>
+        </div>
+    </div>
+    <?php
+
+}
+
+    ?>
+</body>
+</html> . htmlspecialchars($delivery_data['total_tariff'], ENT_QUOTES, 'UTF-8'); ?></td>
                     </tr>
                 </tbody>
             </table>

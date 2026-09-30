@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 `shipments`,
                                 `origen`
                             ) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $name, $driver, $vehicule, $status, $clients, $origen);
+        $stmt->bind_param("ssssss", $name, $driver, $vehicule, $status, $clients_string, $origen);
         $stmt->execute();
         $id = $conn->insert_id;
         $stmt->close();

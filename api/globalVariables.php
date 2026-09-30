@@ -28,5 +28,15 @@ $update = "";
 $delete = "";
 $message = "";
 $toastClass = "";
+$shipment_hbl = "";
+$shipment_owner_name = "";
+$shipment_owner_ci = "";
+$shipment_origen = "";
+$shipment_weight = "";
+$shipment_description = "";
+$shipment_tariff = "";
+$shipment_manifest = "";
+$shipment_status_raw = "";
+$shipment_route_id = "";
 
 ?>

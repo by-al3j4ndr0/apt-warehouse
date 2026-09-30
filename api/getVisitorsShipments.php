@@ -15,6 +15,7 @@
     // Conectar a la base de datos
     include 'db_connect.php';
     include 'getInfoById.php';
+    include 'sanitizeStatus.php';
 
     try {
         // Búsqueda con LIKE (puede devolver múltiples resultados)
@@ -89,7 +90,7 @@
             $combined['city'] = strtoupper($clients_by_ci[$shipment['ci']]['city']) ?? 'Cliente no encontrado';
             $combined['state'] = strtoupper($clients_by_ci[$shipment['ci']]['state']) ?? 'Cliente no encontrado';
             $combined['origen'] = getInfoById($shipment['origen'], 'origen')['name'];
-            $combined['status'] = sanitizeStatus($shipment['status']);
+            $combined['status'] = getStatusList()[$shipment['status']];
             $response['row_data'][] = $combined;
         }
 
@@ -102,19 +103,5 @@
         error_log("Error en searchShipmentsInfo.php: " . $e->getMessage());
         http_response_code(500);
         echo json_encode(['error' => 'Error al obtener la información de los envíos']);
-    }
-
-    function sanitizeStatus(string $desanitizedStatus) {
-        if ($desanitizedStatus == 'draft') {
-            return 'Borrador';
-        } else if ($desanitizedStatus == 'delivering') {
-            return 'Entregando';
-        } else if ($desanitizedStatus == 'finished') {
-            return 'Entregado';
-        } else if ($desanitizedStatus == 'detained') {
-            return 'Detenido';
-        } else if ($desanitizedStatus == 'warehouse') {
-            return 'Almacen';
-        }
     }
 ?>

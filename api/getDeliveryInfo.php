@@ -56,6 +56,8 @@ function getSingleFieldInfo(int $fieldId, string $fieldType) {
             $vehicule_stmt->execute();
             $vehicule_result = $vehicule_stmt->get_result();
             return $vehicule_result;
+        } else if ($fieldType == 'status') {
+            
         } else {
             throw new Exception("Tipo desconocido");
         }

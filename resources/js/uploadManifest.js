@@ -80,6 +80,7 @@ const dropZone = document.getElementById('dropZone');
             const xhr = new XMLHttpRequest();
             
             xhr.open('POST', '../api/putUploadManifest.php', true);
+            xhr.setRequestHeader('X-CSRF-Token', window.csrfToken || '');
             
             // Mostrar progreso
             progressContainer.style.display = 'block';
@@ -133,7 +134,7 @@ const dropZone = document.getElementById('dropZone');
         function showResult(type, message) {
             resultDiv.className = '';
             resultDiv.classList.add(`result-${type}`);
-            resultDiv.innerHTML = message;
+            resultDiv.textContent = message;
             resultDiv.style.display = 'block';
             
             // Auto ocultar después de 5 segundos

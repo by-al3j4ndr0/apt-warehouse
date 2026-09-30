@@ -49,8 +49,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Lock and validate the route inside the transaction to prevent concurrent edits.
-    $conn->begin_transaction();
+    try {
+        // Lock and validate the route inside the transaction to prevent concurrent edits.
+        $conn->begin_transaction();
 
     $routeCheck = $conn->prepare("SELECT status, origen FROM delivery WHERE id = ? FOR UPDATE");
     $routeCheck->bind_param('i', $id);
@@ -59,9 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $routeCheck->close();
 
     if (!$currentRoute) {
-        $_SESSION['error_message'] = 'Ruta no encontrada.';
-        header('Location: ../delivery/deliveries.php');
-        exit();
+        throw new Exception('Ruta no encontrada.');
     }
 
     $validTransitions = [
@@ -71,9 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     ];
 
     if (!in_array($status, $validTransitions[$currentRoute['status']] ?? [], true)) {
-        $_SESSION['error_message'] = 'Transición de estado de ruta no permitida.';
-        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
-        exit();
+        throw new Exception('Transición de estado de ruta no permitida.');
     }
 
     $assignedCountStmt = $conn->prepare("SELECT COUNT(*) AS total FROM shipments WHERE route_id = ?");
@@ -83,9 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $assignedCountStmt->close();
 
     if ($assignedCount > 0 && (int)$currentRoute['origen'] !== $origen) {
-        $_SESSION['error_message'] = 'No se puede cambiar el origen de una ruta que ya tiene envíos.';
-        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
-        exit();
+        throw new Exception('No se puede cambiar el origen de una ruta que ya tiene envíos.');
     }
 
     if ($currentRoute['status'] === 'finished' && $status === 'finished') {
@@ -103,8 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     error_log("Origen ID: $origen (int)");
     error_log("Selected clients: " . print_r($clients_after, true));
 
-    try {
-        error_log("Transaction already started");
+    error_log("Transaction started");
 
         // Get previous clients list from delivery
         $clients_stmt = $conn->prepare("SELECT `shipments` FROM `delivery` WHERE `id` = ?");

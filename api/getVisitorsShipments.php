@@ -8,6 +8,12 @@
     $request = json_decode(file_get_contents('php://input'), true);
 
     $is_staff = (int) ($_SESSION['is_staff'] ?? 0);
+    if ($is_staff === 1) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Visitor endpoint only']);
+        exit;
+    }
+
     if ($is_staff !== 1) {
         $user_origen = $_SESSION['user_origen'] ?? null;
         if ($user_origen === null) {

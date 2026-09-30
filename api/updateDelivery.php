@@ -49,6 +49,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
+    // Lock and validate the route inside the transaction to prevent concurrent edits.
+    $conn->begin_transaction();
+
     $routeCheck = $conn->prepare("SELECT status, origen FROM delivery WHERE id = ? FOR UPDATE");
     $routeCheck->bind_param('i', $id);
     $routeCheck->execute();
@@ -101,9 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     error_log("Selected clients: " . print_r($clients_after, true));
 
     try {
-        // Start transaction
-        $conn->begin_transaction();
-        error_log("Transaction started");
+        error_log("Transaction already started");
 
         // Get previous clients list from delivery
         $clients_stmt = $conn->prepare("SELECT `shipments` FROM `delivery` WHERE `id` = ?");

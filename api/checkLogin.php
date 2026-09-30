@@ -1,66 +1,64 @@
 <?php
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/db_connect.php';
 
-include '../api/db_connect.php';
+startSecureSession();
 
-$message = "";
-$toastClass = "";
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../login.php');
+    exit();
+}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+$username = trim($_POST['username'] ?? '');
+$password = $_POST['password'] ?? '';
 
-    // Prepare and execute
-    $stmt = $conn->prepare("SELECT `password`, `first_name`, `last_name`, `is_staff`, `origen` FROM auth_user WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $stmt->store_result();
+if ($username === '' || $password === '') {
+    $_SESSION['login_error'] = 'Usuario y contraseña son obligatorios.';
+    header('Location: ../login.php');
+    exit();
+}
 
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($db_password, $firstname, $lastname, $staff, $user_origen);
-        $stmt->fetch();
+$stmt = $conn->prepare("SELECT password, first_name, last_name, is_staff, origen FROM auth_user WHERE username = ?");
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$stmt->store_result();
 
-        $pieces = explode("$", $db_password);
+$valid = false;
+if ($stmt->num_rows === 1) {
+    $stmt->bind_result($db_password, $firstname, $lastname, $staff, $user_origen);
+    $stmt->fetch();
 
-        $iterations = $pieces[1];
+    $pieces = explode("$", $db_password);
+    if (count($pieces) === 4 && ctype_digit($pieces[1])) {
+        $iterations = (int) $pieces[1];
         $salt = $pieces[2];
         $old_hash = $pieces[3];
-
-        $hash = hash_pbkdf2("SHA256", $password, $salt, $iterations, 0, true);
-        $hash = base64_encode($hash);
-
-        if ($hash == $old_hash) {
-            $message = "Login successful";
-            $toastClass = "bg-success";
-            // Start the session and redirect to the dashboard or home page
-            session_start();
-            $_SESSION['username'] = $username;
-            $_SESSION['first_name'] = $firstname;
-            $_SESSION['last_name'] = $lastname;
-            $_SESSION['is_staff'] = $staff;
-            $_SESSION["login_time_stamp"] = time();
-
-            if ($staff == 1) {
-                header("Location: ../index.php");
-                exit();
-            } else if ($staff == 0) {
-                $_SESSION['user_origen'] = $user_origen;
-                header("Location: ../visitors/visitors.php");
-                exit();
-            }
-            
-        }
-        else {
-            header("Location: ../login.php");
-            $message = "Incorrect password";
-            $toastClass = "bg-danger";
-        }
-    } else {
-        header("Location: ../login.php");
-        $message = "Username not found";
-        $toastClass = "bg-warning";
+        $hash = base64_encode(hash_pbkdf2("SHA256", $password, $salt, $iterations, 0, true));
+        $valid = hash_equals($old_hash, $hash);
     }
-
-    $stmt->close();
-    $conn->close();
 }
+
+$stmt->close();
+
+if (!$valid) {
+    $_SESSION['login_error'] = 'Usuario o contraseña incorrectos.';
+    header('Location: ../login.php');
+    exit();
+}
+
+session_regenerate_id(true);
+$_SESSION['username'] = $username;
+$_SESSION['first_name'] = $firstname;
+$_SESSION['last_name'] = $lastname;
+$_SESSION['is_staff'] = (int) $staff;
+$_SESSION['login_time_stamp'] = time();
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+if ((int) $staff === 1) {
+    header('Location: ../index.php');
+} else {
+    $_SESSION['user_origen'] = $user_origen;
+    header('Location: ../visitors/visitors.php');
+}
+exit();
 ?>

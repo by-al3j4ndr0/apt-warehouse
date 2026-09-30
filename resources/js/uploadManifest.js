@@ -46,7 +46,7 @@ const dropZone = document.getElementById('dropZone');
             if (!file) return;
             
             // Validar tipo de archivo
-            const allowedExtensions = ['csv'];
+            const allowedExtensions = ['csv', 'txt'];
             const extension = file.name.split('.').pop().toLowerCase();
             
             if (!allowedExtensions.includes(extension)) {

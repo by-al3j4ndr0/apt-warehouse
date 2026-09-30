@@ -1,6 +1,8 @@
 <?php 
-    session_start();
-    include './db_connect.php';
+    require_once __DIR__ . '/auth.php';
+    require_once __DIR__ . '/db_connect.php';
+    requireLogin(true);
+    requireCsrf();
 
     $shipment_hbl = $_POST['shipment_hbl'];
     $shipment_owner_ci = $_POST['shipment_owner_ci'];

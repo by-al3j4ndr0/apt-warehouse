@@ -60,7 +60,7 @@ try {
     
     // Validar tamaño
     if ($file['size'] > $maxFileSize) {
-        throw new Exception('El archivo es demasiado grande. Máximo ' . ($maxFileSize / 1024 / 1024) . 'MB');
+        throw new Exception('El archivo es demasiado grande. Máximo ' . ($maxFileSize / 1024 / 1024) . 'MB', 413);
     }
     
     // Create the storage directory with restrictive permissions.
@@ -75,7 +75,7 @@ try {
 
     // Generate an opaque server-side filename; never reuse the client filename.
 
-    $fileName = date('Ymd_His') . '_' . uniqid() . '.' . $extension;
+    $fileName = date('Ymd_His') . '_' . bin2hex(random_bytes(16)) . '.' . $extension;
     $targetFile = $targetDir . $fileName;
     
     // Mover archivo subido
@@ -125,6 +125,13 @@ try {
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
+    // Return an HTTP error instead of reporting validation failures as HTTP 200.
+    $statusCode = (int) $e->getCode();
+    if (!in_array($statusCode, [400, 413, 500], true)) {
+        $statusCode = 500;
+    }
+    http_response_code($statusCode);
+
     // Limpiar archivo temporal en caso de error
     if (isset($targetFile) && file_exists($targetFile)) {
         unlink($targetFile);

@@ -46,17 +46,17 @@ const dropZone = document.getElementById('dropZone');
             if (!file) return;
             
             // Validar tipo de archivo
-            const allowedExtensions = ['csv'];
+            const allowedExtensions = ['csv', 'txt'];
             const extension = file.name.split('.').pop().toLowerCase();
             
             if (!allowedExtensions.includes(extension)) {
-                showResult('error', '❌ Tipo de archivo no permitido. Solo se permiten archivos CSV (.csv)');
+                showResult('error', '❌ Tipo de archivo no permitido. Solo se permiten archivos CSV o TXT (.csv, .txt)');
                 return;
             }
             
             // Validar tamaño (10MB máximo)
-            if (file.size > 1 * 1024 * 1024) {
-                showResult('error', '❌ El archivo es demasiado grande. Máximo 1MB');
+            if (file.size > 10 * 1024 * 1024) {
+                showResult('error', '❌ El archivo es demasiado grande. Máximo 10MB');
                 return;
             }
             

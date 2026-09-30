@@ -27,12 +27,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Sanitize and prepare data
-    $name = trim($_POST['name']);
-    $driver = trim($_POST['driver']);
-    $vehicule = trim($_POST['vehicule']);
-    $origen = trim($_POST['origen']);
-    $status = trim($_POST['status']);
-    $clients = implode(', ', array_map('trim', $_POST['clients']));
+    $name = trim((string)$_POST['name']);
+    $driver = filter_var($_POST['driver'], FILTER_VALIDATE_INT);
+    $vehicule = filter_var($_POST['vehicule'], FILTER_VALIDATE_INT);
+    $origen = filter_var($_POST['origen'], FILTER_VALIDATE_INT);
+    $status = trim((string)($_POST['status'] ?? 'draft'));
+    $clients = array_values(array_unique(array_filter(array_map('trim', $_POST['clients']), static fn($ci) => $ci !== '')));
+
+    if ($name === '' || $driver === false || $vehicule === false || $origen === false
+        || !in_array($status, ['draft', 'delivering'], true) || count($clients) === 0) {
+        $_SESSION['error_message'] = 'Datos de ruta inválidos.';
+        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        exit();
+    }
+
+    $clients_string = implode(', ', $clients);
 
     try {
         // Start transaction
@@ -59,8 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $updateStmt->bind_param("sisi", $status, $id, $client_id, $origen);
 
         // Process each client
-        foreach ($_POST['clients'] as $client) {
-            $client_id = trim($client);
+        foreach ($clients as $client_id) {
             $updateStmt->execute();
             
             // Check if any rows were affected

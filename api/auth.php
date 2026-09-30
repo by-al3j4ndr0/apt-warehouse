@@ -71,10 +71,6 @@ function requireLogin(bool $staffOnly = false): void {
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-    header('X-Content-Type-Options: nosniff');
-    header('X-Frame-Options: SAMEORIGIN');
-    header('Referrer-Policy: strict-origin-when-cross-origin');
-    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
     if (!isSessionValid()) {
         destroySession();
@@ -93,6 +89,10 @@ function requireApiLogin(bool $staffOnly = false): void {
     startSecureSession();
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Pragma: no-cache');
+    header('X-Content-Type-Options: nosniff');
+        header('X-Frame-Options: SAMEORIGIN');
+        header('Referrer-Policy: strict-origin-when-cross-origin');
+        header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
     if (!isSessionValid()) {
         http_response_code(401);

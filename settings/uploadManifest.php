@@ -2,17 +2,6 @@
 require_once __DIR__ . '/../api/auth.php';
 requireLogin(true);
 
-// Verificar sesión
-if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
-    exit();
-} else {
-    if (time() - $_SESSION["login_time_stamp"] > 600) {
-        session_unset();
-        session_destroy();
-        header("Location: ../login.php");
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +42,7 @@ if (!isset($_SESSION['username'])) {
                 <div class="drop-zone-icon">📁</div>
                 <div class="drop-zone-text">Arrastra y suelta tu archivo aquí</div>
                 <div class="drop-zone-subtext">o haz clic para seleccionar</div>
-                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+                <input type="file" id="fileInput" accept=".csv,.txt" style="display: none;">
             </div>
             
             <div id="progress-container">

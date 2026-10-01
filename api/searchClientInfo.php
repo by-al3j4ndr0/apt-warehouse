@@ -2,6 +2,15 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db_connect.php';
 requireApiLogin(true);
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'Method Not Allowed']);
+    exit();
+}
+header('Content-Type: application/json; charset=utf-8');
+
 $request = json_decode(file_get_contents('php://input'), true);
 
     // Validar que el parámetro existe
@@ -11,7 +20,12 @@ $request = json_decode(file_get_contents('php://input'), true);
         exit;
     }
 
-    $search_param = $request['search_param'];
+    $search_param = trim((string) $request['search_param']);
+    if (mb_strlen($search_param) > 100) {
+        http_response_code(400);
+        echo json_encode(['error' => 'El criterio de búsqueda es demasiado largo']);
+        exit;
+    }
 
     try {
         // Búsqueda con LIKE (puede devolver múltiples resultados)

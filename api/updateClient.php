@@ -76,7 +76,6 @@ try {
         throw new Exception('No se pudo actualizar el cliente');
     }
     $updateClient->close();
-
     $conn->commit();
     header('Location: ../search/details.php?ci=' . urlencode($clientCI));
     exit();

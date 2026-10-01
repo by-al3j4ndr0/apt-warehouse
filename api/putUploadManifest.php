@@ -212,6 +212,11 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
     $conn->query("SET SESSION wait_timeout = 600");
     
     $stats = ['shipments' => 0, 'clients' => 0, 'total' => 0, 'duplicates' => 0];
+    $seenHbl = [];
+    $originStmt = $conn->prepare('SELECT 1 FROM `origen` WHERE `id` = ? LIMIT 1');
+    if (!$originStmt) {
+        throw new Exception('No se pudo preparar la validación de origen.');
+    }
     
     if (!file_exists($archivo)) {
         throw new Exception("Archivo no encontrado: $archivo");
@@ -335,8 +340,23 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 continue;
             }
 
+            if (isset($seenHbl[$data['hbl']])) {
+                $errorLog[] = "Fila $rowNumber: HBL duplicado dentro del manifiesto: {$data['hbl']}";
+                $stats['duplicates']++;
+                continue;
+            }
+            $seenHbl[$data['hbl']] = true;
+
+            $originId = (int) $data['origen'];
+            $originStmt->bind_param('i', $originId);
+            $originStmt->execute();
+            if (!$originStmt->get_result()->fetch_row()) {
+                $errorLog[] = "Fila $rowNumber: Origen inexistente: {$data['origen']}";
+                continue;
+            }
+
             // Validar peso (debe ser numérico y > 0)
-            if (!is_numeric($data['weight']) || floatval($data['weight']) <= 0) {
+            if (!is_numeric($data['weight']) || !is_finite((float) $data['weight']) || floatval($data['weight']) <= 0) {
                 $errorLog[] = "Fila $rowNumber: Peso inválido: {$data['weight']}";
                 continue;
             }
@@ -349,6 +369,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             }
 
             // Insertar/actualizar cliente first.
+            $clientAffected = 0;
             $stmt_client->bind_param(
                 "ssssss",
                 $data['ci'],
@@ -365,9 +386,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 continue;
             }
 
-            if ($conn->affected_rows > 0) {
-                $stats['clients']++;
-            }
+            $clientAffected = $conn->affected_rows;
 
             // Insertar shipment.
             $stmt_shipment->bind_param(

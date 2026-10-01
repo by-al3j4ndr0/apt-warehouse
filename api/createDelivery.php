@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
-        header("Location: " . $_SERVER['HTTP_REFERER']);
+        header("Location: ../delivery/deliveries.php");
         exit();
     }
 
@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         || $driver < 1 || $vehicule < 1 || $origen < 1
         || !in_array($status, ['draft', 'delivering'], true) || count($clients) === 0) {
         $_SESSION['error_message'] = 'Datos de ruta inválidos.';
-        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        header('Location: ../delivery/deliveries.php');
         exit();
     }
 
@@ -151,8 +151,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Log error (in production, use proper logging)
         error_log("Delivery creation error: " . $e->getMessage());
         
-        $_SESSION['error_message'] = "Failed to create delivery: " . $e->getMessage();
-        header("Location: " . $_SERVER['HTTP_REFERER']);
+        $_SESSION['error_message'] = 'No se pudo crear la ruta. Inténtelo nuevamente.';
+        header("Location: ../delivery/deliveries.php");
         exit();
     }
 }

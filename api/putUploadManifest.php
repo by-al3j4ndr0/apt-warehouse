@@ -212,6 +212,11 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
     $conn->query("SET SESSION wait_timeout = 600");
     
     $stats = ['shipments' => 0, 'clients' => 0, 'total' => 0, 'duplicates' => 0];
+    $seenHbl = [];
+    $originStmt = $conn->prepare('SELECT 1 FROM `origen` WHERE `id` = ? LIMIT 1');
+    if (!$originStmt) {
+        throw new Exception('No se pudo preparar la validación de origen.');
+    }
     
     if (!file_exists($archivo)) {
         throw new Exception("Archivo no encontrado: $archivo");
@@ -295,7 +300,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             }
             
             // === VALIDACIÓN CORREGIDA ===
-            $requiredFields = ['hbl', 'origen', 'ci', 'weight', 'description', 'manifest', 'name', 'phone', 'address', 'city', 'state'];
+            $requiredFields = ['hbl', 'origen', 'ci', 'weight', 'description', 'tariff', 'manifest', 'name', 'phone', 'address', 'city', 'state'];
             $missingFields = [];
             
             foreach ($requiredFields as $field) {
@@ -316,14 +321,79 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 $errorLog[] = "Fila $rowNumber: Campos faltantes: " . implode(', ', $missingFields);
                 continue;
             }
-            
+
+            // Validate identifiers and field sizes before touching the database.
+            if (!preg_match('/^[A-Za-z0-9-]+$/', $data['hbl'])
+                || mb_strlen($data['hbl']) > 64
+                || !preg_match('/^[A-Za-z0-9-]+$/', $data['ci'])
+                || mb_strlen($data['ci']) > 64
+                || !ctype_digit($data['origen'])
+                || (int) $data['origen'] < 1
+                || mb_strlen($data['description']) > 1000
+                || mb_strlen($data['manifest']) > 255
+                || mb_strlen($data['name']) > 255
+                || mb_strlen($data['phone']) > 64
+                || mb_strlen($data['address']) > 255
+                || mb_strlen($data['city']) > 128
+                || mb_strlen($data['state']) > 128) {
+                $errorLog[] = "Fila $rowNumber: Uno o más campos tienen formato o longitud inválidos.";
+                continue;
+            }
+
+            if (isset($seenHbl[$data['hbl']])) {
+                $errorLog[] = "Fila $rowNumber: HBL duplicado dentro del manifiesto: {$data['hbl']}";
+                $stats['duplicates']++;
+                continue;
+            }
+            $seenHbl[$data['hbl']] = true;
+
+            $originId = (int) $data['origen'];
+            $originStmt->bind_param('i', $originId);
+            $originStmt->execute();
+            if (!$originStmt->get_result()->fetch_row()) {
+                $errorLog[] = "Fila $rowNumber: Origen inexistente: {$data['origen']}";
+                continue;
+            }
+
             // Validar peso (debe ser numérico y > 0)
-            if (!is_numeric($data['weight']) || floatval($data['weight']) <= 0) {
+            if (!is_numeric($data['weight']) || !is_finite((float) $data['weight']) || floatval($data['weight']) <= 0) {
                 $errorLog[] = "Fila $rowNumber: Peso inválido: {$data['weight']}";
                 continue;
             }
             
-            // Insertar shipment
+            if (!is_numeric($data['tariff']) || !is_finite((float) $data['tariff']) || (float) $data['tariff'] < 0) {
+                $errorLog[] = "Fila $rowNumber: Tarifa inválida: {$data['tariff']}";
+                continue;
+            }
+
+            // Keep each manifest row atomic: a failed client/shipment operation
+            // must not leave the other record committed.
+            $savepoint = 'row_' . $rowNumber;
+            if (!$conn->query("SAVEPOINT \`$savepoint\`")) {
+                throw new Exception("No se pudo preparar la transacción de la fila $rowNumber");
+            }
+
+            // Insertar/actualizar cliente first.
+            $clientAffected = 0;
+            $stmt_client->bind_param(
+                "ssssss",
+                $data['ci'],
+                $data['name'],
+                $data['phone'],
+                $data['address'],
+                $data['city'],
+                $data['state']
+            );
+
+            if (!$stmt_client->execute()) {
+                $errorLog[] = "Fila $rowNumber: Error al insertar cliente: " . $stmt_client->error;
+                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
+                continue;
+            }
+
+            $clientAffected = $conn->affected_rows;
+
+            // Insertar shipment.
             $stmt_shipment->bind_param(
                 "sssdsds",
                 $data['hbl'],
@@ -334,33 +404,18 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 $data['tariff'],
                 $data['manifest']
             );
-            
-            if ($stmt_shipment->execute()) {
-                $stats['shipments']++;
-            } else {
+
+            if (!$stmt_shipment->execute()) {
                 $errorLog[] = "Fila $rowNumber: Error al insertar shipment: " . $stmt_shipment->error;
+                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
                 continue;
             }
-            
-            // Insertar cliente
-            $stmt_client->bind_param(
-                "ssssss",
-                $data['ci'],
-                $data['name'],
-                $data['phone'],
-                $data['address'],
-                $data['city'],
-                $data['state']
-            );
-            
-            if ($stmt_client->execute()) {
-                if ($conn->affected_rows > 0) {
-                    $stats['clients']++;
-                }
-            } else {
-                $errorLog[] = "Fila $rowNumber: Error al insertar cliente: " . $stmt_client->error;
-                continue;
+
+            $stats['shipments']++;
+            if ($clientAffected > 0) {
+                $stats['clients']++;
             }
+            $conn->query("RELEASE SAVEPOINT \`$savepoint\`");
             
             $stats['total'] = $stats['shipments'];
         }
@@ -388,6 +443,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
         }
         
         $conn->commit();
+        $originStmt->close();
         
     } catch (Exception $e) {
         $conn->rollback();

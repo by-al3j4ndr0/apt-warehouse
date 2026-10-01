@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $allowedStatuses = ['draft', 'delivering', 'finished'];
     if (!in_array($status, $allowedStatuses, true)) {
         $_SESSION['error_message'] = 'Estado de ruta inválido.';
-        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        header('Location: ../delivery/deliveries.php');
         exit();
     }
 
@@ -356,7 +356,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "Delivery update error: " . $e->getMessage();
         error_log($error_message);
         
-        $_SESSION['error_message'] = "Failed to update delivery: " . $e->getMessage();
+        $_SESSION['error_message'] = 'No se pudo actualizar la ruta. Inténtelo nuevamente.';
         
         // Redirect back to the form with error
         header("Location: ../delivery/deliveries.php");

@@ -2,21 +2,33 @@
     require_once __DIR__ . '/auth.php';
     requireLogin(true);
 
-    // Validar y obtener el tipo
-    $typo = isset($_GET['type']) ? (string) $_GET['type'] : '';
+    $type = isset($_GET['type']) ? trim((string) $_GET['type']) : '';
     $id = isset($_GET['id']) ? trim((string) $_GET['id']) : '';
 
-    if (!in_array($typo, ['ci', 'hbl', 'route_id'], true) || $id === '' || mb_strlen($id) > 64) {
+    if (!in_array($type, ['ci', 'hbl', 'route_id'], true) || $id === '') {
         http_response_code(400);
         exit('Invalid redirect parameters');
     }
 
-    if ($typo === 'ci') {
-        header("Location: ../search/details.php?ci=" . $id);
-    } else if ($typo === 'hbl') {
-        header("Location: ../search/shipmentsDetails.php?hbl=" . $id);
-    } else if ($typo === 'route_id') {
-        header("Location: ../pdf/exportPdf.php?id=" . $id);
+    if ($type === 'route_id') {
+        if (!ctype_digit($id) || (int) $id < 1) {
+            http_response_code(400);
+            exit('Invalid redirect parameters');
+        }
+
+        header('Location: ../pdf/exportPdf.php?id=' . rawurlencode($id));
+        exit;
     }
 
+    if (mb_strlen($id) > 64 || !preg_match('/^[A-Za-z0-9-]+$/', $id)) {
+        http_response_code(400);
+        exit('Invalid redirect parameters');
+    }
+
+    $target = $type === 'ci'
+        ? '../search/details.php?ci='
+        : '../search/shipmentsDetails.php?hbl=';
+
+    header('Location: ' . $target . rawurlencode($id));
+    exit;
 ?>

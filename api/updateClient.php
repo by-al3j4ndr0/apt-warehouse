@@ -52,9 +52,42 @@ try {
         $duplicate->close();
     }
 
-    // Keep shipment ownership consistent when the CI changes.
-    // Update children first so restrictive foreign keys can remain valid.
+    // Keep route membership consistent with the client CI as well as shipment ownership.
     if ($clientCI !== $originalClientCI) {
+        $routeStmt = $conn->prepare(
+            "SELECT id, shipments FROM delivery
+             WHERE FIND_IN_SET(?, REPLACE(shipments, ' ', '')) > 0
+             FOR UPDATE"
+        );
+        $routeStmt->bind_param('s', $originalClientCI);
+        $routeStmt->execute();
+        $routeResult = $routeStmt->get_result();
+        $routes = [];
+        while ($route = $routeResult->fetch_assoc()) {
+            $routes[] = $route;
+        }
+        $routeStmt->close();
+
+        $updateRoute = $conn->prepare("UPDATE delivery SET shipments = ? WHERE id = ?");
+        foreach ($routes as $route) {
+            $routeClients = array_values(array_unique(array_filter(
+                array_map('trim', explode(',', (string)$route['shipments'])),
+                static fn($value) => $value !== ''
+            )));
+            $routeClients = array_values(array_filter($routeClients, static fn($value) => $value !== $originalClientCI));
+            if (!in_array($clientCI, $routeClients, true)) {
+                $routeClients[] = $clientCI;
+            }
+            $routeShipments = implode(', ', $routeClients);
+            $routeId = (int)$route['id'];
+            $updateRoute->bind_param('si', $routeShipments, $routeId);
+            if (!$updateRoute->execute()) {
+                throw new Exception('No se pudo actualizar la pertenencia del cliente en una ruta');
+            }
+        }
+        $updateRoute->close();
+
+        // Update children first so restrictive foreign keys can remain valid.
         $updateShipments = $conn->prepare("UPDATE shipments SET ci = ? WHERE ci = ?");
         $updateShipments->bind_param('ss', $clientCI, $originalClientCI);
         if (!$updateShipments->execute()) {

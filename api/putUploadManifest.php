@@ -124,7 +124,7 @@ try {
         ]
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     
-} catch (Exception $e) {
+} catch (Throwable $e) {
     // Return an HTTP error instead of reporting validation failures as HTTP 200.
     $statusCode = (int) $e->getCode();
     if (!in_array($statusCode, [400, 413, 500], true)) {
@@ -132,11 +132,11 @@ try {
     }
     http_response_code($statusCode);
 
-    // Limpiar archivo temporal en caso de error
-    if (isset($targetFile) && file_exists($targetFile)) {
-        unlink($targetFile);
+    // Always remove the server-side temporary manifest, including unexpected failures.
+    if (isset($targetFile) && is_file($targetFile)) {
+        @unlink($targetFile);
     }
-    
+
     echo json_encode([
         'success' => false,
         'message' => '❌ Error: ' . $e->getMessage(),
@@ -205,8 +205,8 @@ function convertirUTF8($texto) {
 }
 
 function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
-    include '../api/db_connect.php';
-    
+    global $conn;
+
     // Configuración
     $conn->set_charset("utf8mb4");
     $conn->query("SET SESSION wait_timeout = 600");

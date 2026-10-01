@@ -1,7 +1,7 @@
 <?php
 $servername = getenv('DB_HOST') ?: 'localhost';
-$username = getenv('DB_USER');
-$password = getenv('DB_PASSWORD');
+$username = getenv('DB_USER') ?: 'apt_admin';
+$password = getenv('DB_PASSWORD') ?: 'DCMU7323**';
 $dbname = getenv('DB_NAME') ?: 'apt_warehouse';
 
 if ($username === false || $password === false) {

@@ -183,7 +183,7 @@ requireLogin(true);
                                                 <button type="submit" class="btn btn-link p-0" title="Eliminar"><i class="fa fa-trash"></i></button>
                                             </form>
                                         <?php else: ?>
-                                            <span class="disabled" title="Eliminar"><i class="fa fa-trash"></i></span>
+                                            <a class="disabled" title="Eliminar"><i class="fa fa-trash"></i></a>
                                         <?php endif; ?>
                                         <a href="../api/exportRouteInfo.php?id=<?php echo (int) $delivery['id'] ?>"
                                            title="Exportar">

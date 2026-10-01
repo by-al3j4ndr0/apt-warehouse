@@ -361,6 +361,11 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 continue;
             }
             
+            if (!is_numeric($data['tariff']) || !is_finite((float) $data['tariff']) || (float) $data['tariff'] < 0) {
+                $errorLog[] = "Fila $rowNumber: Tarifa inválida: {$data['tariff']}";
+                continue;
+            }
+
             // Keep each manifest row atomic: a failed client/shipment operation
             // must not leave the other record committed.
             $savepoint = 'row_' . $rowNumber;
@@ -407,6 +412,9 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             }
 
             $stats['shipments']++;
+            if ($clientAffected > 0) {
+                $stats['clients']++;
+            }
             $conn->query("RELEASE SAVEPOINT \`$savepoint\`");
             
             $stats['total'] = $stats['shipments'];
@@ -435,6 +443,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
         }
         
         $conn->commit();
+        $originStmt->close();
         
     } catch (Exception $e) {
         $conn->rollback();

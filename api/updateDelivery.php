@@ -47,14 +47,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         || $id < 1 || $driver < 1 || $vehicule < 1 || $origen < 1 || $name === '' || mb_strlen($name) > 255
         || count($clients_after) === 0) {
         $_SESSION['error_message'] = 'Datos de ruta inválidos.';
-        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        header('Location: ../delivery/deliveries.php');
         exit();
     }
 
     $allowedStatuses = ['draft', 'delivering', 'finished'];
     if (!in_array($status, $allowedStatuses, true)) {
         $_SESSION['error_message'] = 'Estado de ruta inválido.';
-        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        header('Location: ../delivery/deliveries.php');
         exit();
     }
 
@@ -118,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     error_log("Driver ID: $driver (int)");
     error_log("Vehicule ID: $vehicule (int)");
     error_log("Origen ID: $origen (int)");
-    error_log("Selected clients: " . print_r($clients_after, true));
+    error_log("Selected client count: " . count($clients_after));
 
     error_log("Transaction started");
 
@@ -356,7 +356,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "Delivery update error: " . $e->getMessage();
         error_log($error_message);
         
-        $_SESSION['error_message'] = "Failed to update delivery: " . $e->getMessage();
+        $_SESSION['error_message'] = 'No se pudo actualizar la ruta. Inténtelo nuevamente.';
         
         // Redirect back to the form with error
         header("Location: ../delivery/deliveries.php");

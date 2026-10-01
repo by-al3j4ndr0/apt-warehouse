@@ -22,11 +22,12 @@ $description = trim((string)($_POST['shipment_description'] ?? ''));
 
 $allowedStatuses = ['warehouse', 'draft', 'delivering', 'finished', 'detained'];
 
-if ($hbl === '' || !preg_match('/^[A-Za-z0-9-]+$/', $hbl)
+if ($hbl === '' || !preg_match('/^[A-Za-z0-9-]+$/', $hbl) || mb_strlen($hbl) > 64
     || $ci === '' || $origen === false || $origen === null
     || $weight === '' || $tariff === '' || $manifest === ''
     || !in_array($status, $allowedStatuses, true)
-    || $routeId === false || $routeId === null) {
+    || $routeId === false || $routeId === null || $routeId < 0
+    || mb_strlen($ci) > 64 || mb_strlen($manifest) > 255 || mb_strlen($description) > 1000) {
     http_response_code(400);
     exit('Invalid shipment data');
 }
@@ -64,8 +65,21 @@ try {
         throw new Exception('Non-warehouse shipments must have a route');
     }
 
+    if ($current['status'] === 'finished'
+        && ($routeId !== (int)$current['route_id'] || (int)$origen !== (int)$current['origen'])) {
+        throw new Exception('A finished shipment cannot change route or origin');
+    }
+
+    $originStmt = $conn->prepare("SELECT 1 FROM origen WHERE id = ? LIMIT 1");
+    $originStmt->bind_param('i', $origen);
+    $originStmt->execute();
+    if (!$originStmt->get_result()->fetch_row()) {
+        throw new Exception('Origin not found');
+    }
+    $originStmt->close();
+
     if ($routeId > 0) {
-        $routeStmt = $conn->prepare("SELECT origen, status FROM delivery WHERE id = ? FOR SHARE");
+        $routeStmt = $conn->prepare("SELECT origen, status, shipments FROM delivery WHERE id = ? FOR UPDATE");
         $routeStmt->bind_param('i', $routeId);
         $routeStmt->execute();
         $route = $routeStmt->get_result()->fetch_assoc();
@@ -82,6 +96,14 @@ try {
         if ($status === 'delivering' && !in_array($route['status'], ['delivering', 'finished'], true)) {
             throw new Exception('Shipment cannot be delivering on a draft route');
         }
+
+        if ($status === 'draft' && $route['status'] !== 'draft') {
+            throw new Exception('Draft shipments must belong to draft routes');
+        }
+
+        if ($current['status'] === 'finished' && $routeId !== (int)$current['route_id']) {
+            throw new Exception('A finished shipment cannot be moved to another route');
+        }
     }
 
     $clientStmt = $conn->prepare("SELECT 1 FROM clients WHERE ci = ? LIMIT 1");
@@ -91,6 +113,53 @@ try {
         throw new Exception('Client not found');
     }
     $clientStmt->close();
+
+    // If route or client membership changes, lock the old route and synchronize both route lists.
+    $oldRouteId = (int)$current['route_id'];
+    $routeIdsToLock = array_values(array_unique(array_filter([$oldRouteId, $routeId], static fn($value) => $value > 0)));
+    sort($routeIdsToLock, SORT_NUMERIC);
+    $lockedRoutes = [];
+    foreach ($routeIdsToLock as $lockedRouteId) {
+        $lockRoute = $conn->prepare("SELECT shipments FROM delivery WHERE id = ? FOR UPDATE");
+        $lockRoute->bind_param('i', $lockedRouteId);
+        $lockRoute->execute();
+        $lockedRoute = $lockRoute->get_result()->fetch_assoc();
+        $lockRoute->close();
+        if (!$lockedRoute) {
+            throw new Exception('Route not found');
+        }
+        $lockedRoutes[$lockedRouteId] = $lockedRoute['shipments'];
+    }
+
+    if ($oldRouteId !== $routeId || $current['ci'] !== $ci) {
+        $oldClients = $oldRouteId > 0 ? array_values(array_unique(array_filter(array_map('trim', explode(',', (string)($lockedRoutes[$oldRouteId] ?? ''))), static fn($v) => $v !== ''))) : [];
+        $newClients = $routeId > 0 ? array_values(array_unique(array_filter(array_map('trim', explode(',', (string)($lockedRoutes[$routeId] ?? ''))), static fn($v) => $v !== ''))) : [];
+
+        if ($oldRouteId > 0 && $current['ci'] !== $ci && !in_array($current['ci'], $newClients, true)) {
+            $oldClients = array_values(array_filter($oldClients, static fn($v) => $v !== $current['ci']));
+        }
+        if ($oldRouteId > 0 && $oldRouteId !== $routeId && !in_array($current['ci'], $oldClients, true)) {
+            $oldClients = array_values(array_filter($oldClients, static fn($v) => $v !== $current['ci']));
+        }
+        if ($routeId > 0 && !in_array($ci, $newClients, true)) {
+            $newClients[] = $ci;
+        }
+
+        if ($oldRouteId > 0 && $oldRouteId !== $routeId) {
+            $routeUpdate = $conn->prepare("UPDATE delivery SET shipments = ? WHERE id = ?");
+            $oldClientsString = implode(', ', $oldClients);
+            $routeUpdate->bind_param('si', $oldClientsString, $oldRouteId);
+            if (!$routeUpdate->execute()) throw new Exception('Failed to update previous route membership');
+            $routeUpdate->close();
+        }
+        if ($routeId > 0 && ($oldRouteId !== $routeId || $current['ci'] !== $ci)) {
+            $routeUpdate = $conn->prepare("UPDATE delivery SET shipments = ? WHERE id = ?");
+            $newClientsString = implode(', ', $newClients);
+            $routeUpdate->bind_param('si', $newClientsString, $routeId);
+            if (!$routeUpdate->execute()) throw new Exception('Failed to update new route membership');
+            $routeUpdate->close();
+        }
+    }
 
     $update = $conn->prepare(
         "UPDATE shipments

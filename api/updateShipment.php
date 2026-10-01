@@ -22,7 +22,7 @@ $description = trim((string)($_POST['shipment_description'] ?? ''));
 
 $allowedStatuses = ['warehouse', 'draft', 'delivering', 'finished', 'detained'];
 
-if ($hbl === '' || !preg_match('/^[A-Za-z0-9-]+$/', $hbl)
+if ($hbl === '' || !preg_match('/^[A-Za-z0-9-]+$/', $hbl) || mb_strlen($hbl) > 64
     || $ci === '' || $origen === false || $origen === null
     || $weight === '' || $tariff === '' || $manifest === ''
     || !in_array($status, $allowedStatuses, true)

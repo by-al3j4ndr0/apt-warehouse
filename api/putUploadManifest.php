@@ -295,7 +295,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             }
             
             // === VALIDACIÓN CORREGIDA ===
-            $requiredFields = ['hbl', 'origen', 'ci', 'weight', 'description', 'manifest', 'name', 'phone', 'address', 'city', 'state'];
+            $requiredFields = ['hbl', 'origen', 'ci', 'weight', 'description', 'tariff', 'manifest', 'name', 'phone', 'address', 'city', 'state'];
             $missingFields = [];
             
             foreach ($requiredFields as $field) {
@@ -316,14 +316,60 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 $errorLog[] = "Fila $rowNumber: Campos faltantes: " . implode(', ', $missingFields);
                 continue;
             }
-            
+
+            // Validate identifiers and field sizes before touching the database.
+            if (!preg_match('/^[A-Za-z0-9-]+$/', $data['hbl'])
+                || mb_strlen($data['hbl']) > 64
+                || !preg_match('/^[A-Za-z0-9-]+$/', $data['ci'])
+                || mb_strlen($data['ci']) > 64
+                || !ctype_digit($data['origen'])
+                || (int) $data['origen'] < 1
+                || mb_strlen($data['description']) > 1000
+                || mb_strlen($data['manifest']) > 255
+                || mb_strlen($data['name']) > 255
+                || mb_strlen($data['phone']) > 64
+                || mb_strlen($data['address']) > 255
+                || mb_strlen($data['city']) > 128
+                || mb_strlen($data['state']) > 128) {
+                $errorLog[] = "Fila $rowNumber: Uno o más campos tienen formato o longitud inválidos.";
+                continue;
+            }
+
             // Validar peso (debe ser numérico y > 0)
             if (!is_numeric($data['weight']) || floatval($data['weight']) <= 0) {
                 $errorLog[] = "Fila $rowNumber: Peso inválido: {$data['weight']}";
                 continue;
             }
             
-            // Insertar shipment
+            // Keep each manifest row atomic: a failed client/shipment operation
+            // must not leave the other record committed.
+            $savepoint = 'row_' . $rowNumber;
+            if (!$conn->query("SAVEPOINT \`$savepoint\`")) {
+                throw new Exception("No se pudo preparar la transacción de la fila $rowNumber");
+            }
+
+            // Insertar/actualizar cliente first.
+            $stmt_client->bind_param(
+                "ssssss",
+                $data['ci'],
+                $data['name'],
+                $data['phone'],
+                $data['address'],
+                $data['city'],
+                $data['state']
+            );
+
+            if (!$stmt_client->execute()) {
+                $errorLog[] = "Fila $rowNumber: Error al insertar cliente: " . $stmt_client->error;
+                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
+                continue;
+            }
+
+            if ($conn->affected_rows > 0) {
+                $stats['clients']++;
+            }
+
+            // Insertar shipment.
             $stmt_shipment->bind_param(
                 "sssdsds",
                 $data['hbl'],
@@ -334,33 +380,15 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 $data['tariff'],
                 $data['manifest']
             );
-            
-            if ($stmt_shipment->execute()) {
-                $stats['shipments']++;
-            } else {
+
+            if (!$stmt_shipment->execute()) {
                 $errorLog[] = "Fila $rowNumber: Error al insertar shipment: " . $stmt_shipment->error;
+                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
                 continue;
             }
-            
-            // Insertar cliente
-            $stmt_client->bind_param(
-                "ssssss",
-                $data['ci'],
-                $data['name'],
-                $data['phone'],
-                $data['address'],
-                $data['city'],
-                $data['state']
-            );
-            
-            if ($stmt_client->execute()) {
-                if ($conn->affected_rows > 0) {
-                    $stats['clients']++;
-                }
-            } else {
-                $errorLog[] = "Fila $rowNumber: Error al insertar cliente: " . $stmt_client->error;
-                continue;
-            }
+
+            $stats['shipments']++;
+            $conn->query("RELEASE SAVEPOINT \`$savepoint\`");
             
             $stats['total'] = $stats['shipments'];
         }

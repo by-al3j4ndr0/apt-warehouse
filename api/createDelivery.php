@@ -22,21 +22,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
-        header("Location: " . $_SERVER['HTTP_REFERER']);
+        header("Location: ../delivery/deliveries.php");
         exit();
     }
 
     // Sanitize and prepare data
-    $name = trim($_POST['name']);
-    $driver = trim($_POST['driver']);
-    $vehicule = trim($_POST['vehicule']);
-    $origen = trim($_POST['origen']);
-    $status = trim($_POST['status']);
-    $clients = implode(', ', array_map('trim', $_POST['clients']));
+    $name = trim((string)$_POST['name']);
+    $driver = filter_var($_POST['driver'], FILTER_VALIDATE_INT);
+    $vehicule = filter_var($_POST['vehicule'], FILTER_VALIDATE_INT);
+    $origen = filter_var($_POST['origen'], FILTER_VALIDATE_INT);
+    $status = trim((string)($_POST['status'] ?? 'draft'));
+    $clients = array_values(array_unique(array_filter(array_map('trim', $_POST['clients']), static fn($ci) => $ci !== '')));
+
+    if ($name === '' || mb_strlen($name) > 255 || $driver === false || $vehicule === false || $origen === false
+        || $driver < 1 || $vehicule < 1 || $origen < 1
+        || !in_array($status, ['draft', 'delivering'], true) || count($clients) === 0) {
+        $_SESSION['error_message'] = 'Datos de ruta inválidos.';
+        header('Location: ../delivery/deliveries.php');
+        exit();
+    }
+
+    $clients_string = implode(', ', $clients);
 
     try {
         // Start transaction
         $conn->begin_transaction();
+
+        // Validate referenced entities before creating the route.
+        foreach ([
+            ['table' => 'drivers', 'id' => $driver, 'label' => 'Conductor'],
+            ['table' => 'vehicules', 'id' => $vehicule, 'label' => 'Vehículo'],
+            ['table' => 'origen', 'id' => $origen, 'label' => 'Origen'],
+        ] as $entity) {
+            $entityStmt = $conn->prepare("SELECT 1 FROM `{$entity['table']}` WHERE `id` = ? LIMIT 1");
+            $entityStmt->bind_param('i', $entity['id']);
+            $entityStmt->execute();
+            if (!$entityStmt->get_result()->fetch_row()) {
+                $entityStmt->close();
+                throw new Exception($entity['label'] . ' no encontrado.');
+            }
+            $entityStmt->close();
+        }
+
+        // Every selected client must exist and have at least one warehouse shipment at this origin.
+        $clientStmt = $conn->prepare("SELECT 1 FROM `clients` WHERE `ci` = ? LIMIT 1");
+        $shipmentCheck = $conn->prepare("SELECT COUNT(*) AS total FROM `shipments` WHERE `ci` = ? AND `status` = 'warehouse' AND `origen` = ?");
+        foreach ($clients as $client_id) {
+            $clientStmt->bind_param('s', $client_id);
+            $clientStmt->execute();
+            if (!$clientStmt->get_result()->fetch_row()) {
+                throw new Exception("Cliente $client_id no encontrado.");
+            }
+            $shipmentCheck->bind_param('si', $client_id, $origen);
+            $shipmentCheck->execute();
+            if ((int)$shipmentCheck->get_result()->fetch_assoc()['total'] === 0) {
+                throw new Exception("El cliente $client_id no tiene envíos en almacén para este origen.");
+            }
+        }
+        $clientStmt->close();
+        $shipmentCheck->close();
 
         // Insert delivery record using prepared statement
         $stmt = $conn->prepare("INSERT INTO `delivery` (
@@ -47,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 `shipments`,
                                 `origen`
                             ) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $name, $driver, $vehicule, $status, $clients, $origen);
+        $stmt->bind_param("siissi", $name, $driver, $vehicule, $status, $clients_string, $origen);
         $stmt->execute();
         $id = $conn->insert_id;
         $stmt->close();
@@ -59,8 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $updateStmt->bind_param("sisi", $status, $id, $client_id, $origen);
 
         // Process each client
-        foreach ($_POST['clients'] as $client) {
-            $client_id = trim($client);
+        foreach ($clients as $client_id) {
             $updateStmt->execute();
             
             // Check if any rows were affected
@@ -108,8 +151,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Log error (in production, use proper logging)
         error_log("Delivery creation error: " . $e->getMessage());
         
-        $_SESSION['error_message'] = "Failed to create delivery: " . $e->getMessage();
-        header("Location: " . $_SERVER['HTTP_REFERER']);
+        $_SESSION['error_message'] = 'No se pudo crear la ruta. Inténtelo nuevamente.';
+        header("Location: ../delivery/deliveries.php");
         exit();
     }
 }

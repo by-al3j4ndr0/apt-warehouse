@@ -7,7 +7,13 @@ function startSecureSession(): void {
         return;
     }
 
-    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.use_strict_mode', '1');
+
+    $secureEnv = getenv('SESSION_SECURE_COOKIE');
+    $secure = $secureEnv !== false
+        ? filter_var($secureEnv, FILTER_VALIDATE_BOOLEAN)
+        : (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
@@ -35,12 +41,29 @@ function destroySession(): void {
 }
 
 function isSessionValid(): bool {
-    return isset($_SESSION['username'], $_SESSION['login_time_stamp'])
-        && (time() - (int) $_SESSION['login_time_stamp']) <= 600;
+    if (!isset($_SESSION['username'], $_SESSION['login_time_stamp'])) {
+        return false;
+    }
+
+    $now = time();
+    $lastActivity = (int) ($_SESSION['last_activity'] ?? $_SESSION['login_time_stamp']);
+
+    if ($now - $lastActivity > 600) {
+        return false;
+    }
+
+    $_SESSION['last_activity'] = $now;
+    return true;
 }
 
 function requireLogin(bool $staffOnly = false): void {
     startSecureSession();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
     if (!isSessionValid()) {
         destroySession();
@@ -57,6 +80,12 @@ function requireLogin(bool $staffOnly = false): void {
 
 function requireApiLogin(bool $staffOnly = false): void {
     startSecureSession();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('X-Content-Type-Options: nosniff');
+        header('X-Frame-Options: SAMEORIGIN');
+        header('Referrer-Policy: strict-origin-when-cross-origin');
+        header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
     if (!isSessionValid()) {
         http_response_code(401);

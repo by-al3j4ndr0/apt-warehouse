@@ -1,22 +1,11 @@
-<?php 
-    session_start();
-
-    // Verificar sesión
-    if (!isset($_SESSION['username'])) {
-        header("Location: ../login.php");
-        exit();
-    } else {
-        if (time() - $_SESSION["login_time_stamp"] > 600) {
-            session_unset();
-            session_destroy();
-            header("Location: ../login.php");
-        }
-    }
+<?php
+    require_once __DIR__ . '/../api/auth.php';
+    requireLogin(true);
 
     include '../api/manageDeliveryModel.php';
     
     // Validar y obtener el modelo
-    $model = isset($_GET['model']) ? $_GET['model'] : '';
+    $model = isset($_GET['model']) ? trim((string) $_GET['model']) : '';
 
     // Ejecutar según el modelo
     switch ($model) {
@@ -24,9 +13,13 @@
             newDelivery();
             break;
         case 'update_delivery':
-            if(isset($_GET['id'])) {
-                updateDelivery($_GET['id']);
+            if (!isset($_GET['id']) || !ctype_digit((string) $_GET['id']) || (int) $_GET['id'] < 1) {
+                http_response_code(400);
+                $_SESSION['error_message'] = "ID de ruta inválido";
+                break;
             }
+
+            updateDelivery((int) $_GET['id']);
             break;
         default:
             // Si no hay modelo válido, mostrar error o redirigir
@@ -44,7 +37,7 @@
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
     <meta charset="UTF-8">
     <meta name="viewport"content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_tittle ?></title>
+    <title><?php echo htmlspecialchars($page_tittle ?? 'Gestionar Ruta', ENT_QUOTES, 'UTF-8'); ?></title>
     <style>
         .toast {
             position: fixed;
@@ -95,9 +88,9 @@
             </div>
         <?php endif; ?>
         
-        <form action="<?php echo $formActionHref ?>" method="post">
+        <form action="<?php echo htmlspecialchars($formActionHref ?? '', ENT_QUOTES, 'UTF-8'); ?>" method="post">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8'); ?>">
-            <input type="hidden" id="deliveryId" name="deliveryId" value="<?php echo $deliveryId ?>">
+            <input type="hidden" id="deliveryId" name="deliveryId" value="<?php echo htmlspecialchars((string) $deliveryId, ENT_QUOTES, 'UTF-8'); ?>">
             <div class="form-control">
                 <div class="row p-2">
                     <div class="btn-group" role="group">
@@ -116,11 +109,11 @@
                 <div class="row p-2">
                     <div class="col">
                         <label for="name" class="form-label">Nombre</label>  
-                        <input type="text" class="form-control" id="name" name="name" value="<?php echo $deliveryName ?>" placeholder="(XXX-00) 00/00" autocomplete="off" required <?php echo $input_delivering_state ?>>
+                        <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($deliveryName ?? '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="(XXX-00) 00/00" autocomplete="off" required <?php echo htmlspecialchars($input_delivering_state ?? '', ENT_QUOTES, 'UTF-8'); ?>>
                     </div>
                     <div class="col">
                         <label for="origen" class="form-label">Origen</label>
-                        <select id="origen" class="form-control" name="origen" <?php echo $origen_state ?> required>
+                        <select id="origen" class="form-control" name="origen" <?php echo htmlspecialchars($origen_state ?? '', ENT_QUOTES, 'UTF-8'); ?> required>
                             <option name="default_origen" value="">Seleccione...</option>
                             <?php if (isset($origen_stmt) && $origen_stmt): ?>
                                 <?php while($origen = $origen_stmt->fetch_assoc()): ?>

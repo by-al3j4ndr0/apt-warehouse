@@ -2,12 +2,6 @@
 require_once __DIR__ . '/auth.php';
 requireLogin(true);
 
-// Verificar sesión
-if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
-    exit();
-}
-
 // Funciones
 function newDelivery() {
 

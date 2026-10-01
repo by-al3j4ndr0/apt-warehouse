@@ -23,7 +23,7 @@ $warningLog = [];
 try {
     // Verificar si se recibió archivo
     if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['archivo'])) {
-        throw new Exception('No se recibió ningún archivo');
+        throw new Exception('No se recibió ningún archivo', 400);
     }
     
     $file = $_FILES['archivo'];
@@ -40,34 +40,42 @@ try {
             UPLOAD_ERR_EXTENSION => 'Extensión de archivo no permitida'
         ];
         $errorMsg = isset($uploadErrors[$file['error']]) ? $uploadErrors[$file['error']] : 'Error desconocido';
-        throw new Exception($errorMsg);
+        throw new Exception($errorMsg, 400);
     }
     
-    // Validar tipo de archivo
-    $fileType = mime_content_type($file['tmp_name']);
-    if (!in_array($fileType, $allowedTypes)) {
-        // Intentar detectar por extensión como fallback
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, ['csv', 'txt'])) {
-            throw new Exception('Tipo de archivo no permitido. Solo se permiten archivos CSV (extensión .csv)');
-        }
+    // Validate both MIME signature and extension. Never trust the client-supplied MIME type.
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($extension, ['csv', 'txt'], true)) {
+        throw new Exception('Tipo de archivo no permitido. Solo se permiten archivos CSV o TXT.', 400);
+    }
+
+    $fileType = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    if ($fileType === false || !in_array($fileType, $allowedTypes, true)) {
+        throw new Exception('El contenido del archivo no corresponde a un CSV/TXT permitido.', 400);
+    }
+
+    if (!is_uploaded_file($file['tmp_name'])) {
+        throw new Exception('La carga del archivo no es válida.', 400);
     }
     
     // Validar tamaño
     if ($file['size'] > $maxFileSize) {
-        throw new Exception('El archivo es demasiado grande. Máximo ' . ($maxFileSize / 1024 / 1024) . 'MB');
+        throw new Exception('El archivo es demasiado grande. Máximo ' . ($maxFileSize / 1024 / 1024) . 'MB', 413);
     }
     
-    // Crear directorio si no existe
-    if (!file_exists($targetDir)) {
-        if (!mkdir($targetDir, 0777, true)) {
+    // Create the storage directory with restrictive permissions.
+    if (!is_dir($targetDir)) {
+        if (!mkdir($targetDir, 0750, true)) {
             throw new Exception('No se pudo crear el directorio de uploads');
         }
     }
-    
-    // Generar nombre único
-    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $fileName = date('Ymd_His') . '_' . uniqid() . '.' . $extension;
+    if (!is_writable($targetDir)) {
+        throw new Exception('El directorio de uploads no es escribible.');
+    }
+
+    // Generate an opaque server-side filename; never reuse the client filename.
+
+    $fileName = date('Ymd_His') . '_' . bin2hex(random_bytes(16)) . '.' . $extension;
     $targetFile = $targetDir . $fileName;
     
     // Mover archivo subido
@@ -116,12 +124,19 @@ try {
         ]
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     
-} catch (Exception $e) {
-    // Limpiar archivo temporal en caso de error
-    if (isset($targetFile) && file_exists($targetFile)) {
-        unlink($targetFile);
+} catch (Throwable $e) {
+    // Return an HTTP error instead of reporting validation failures as HTTP 200.
+    $statusCode = (int) $e->getCode();
+    if (!in_array($statusCode, [400, 413, 500], true)) {
+        $statusCode = 500;
     }
-    
+    http_response_code($statusCode);
+
+    // Always remove the server-side temporary manifest, including unexpected failures.
+    if (isset($targetFile) && is_file($targetFile)) {
+        @unlink($targetFile);
+    }
+
     echo json_encode([
         'success' => false,
         'message' => '❌ Error: ' . $e->getMessage(),
@@ -190,14 +205,18 @@ function convertirUTF8($texto) {
 }
 
 function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
-    include '../api/db_connect.php';
-    
+    global $conn;
+
     // Configuración
     $conn->set_charset("utf8mb4");
-    $conn->query("SET SESSION sql_mode = ''");
     $conn->query("SET SESSION wait_timeout = 600");
     
     $stats = ['shipments' => 0, 'clients' => 0, 'total' => 0, 'duplicates' => 0];
+    $seenHbl = [];
+    $originStmt = $conn->prepare('SELECT 1 FROM `origen` WHERE `id` = ? LIMIT 1');
+    if (!$originStmt) {
+        throw new Exception('No se pudo preparar la validación de origen.');
+    }
     
     if (!file_exists($archivo)) {
         throw new Exception("Archivo no encontrado: $archivo");
@@ -281,7 +300,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             }
             
             // === VALIDACIÓN CORREGIDA ===
-            $requiredFields = ['hbl', 'origen', 'ci', 'weight', 'description', 'manifest', 'name', 'phone', 'address', 'city', 'state'];
+            $requiredFields = ['hbl', 'origen', 'ci', 'weight', 'description', 'tariff', 'manifest', 'name', 'phone', 'address', 'city', 'state'];
             $missingFields = [];
             
             foreach ($requiredFields as $field) {
@@ -302,14 +321,79 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 $errorLog[] = "Fila $rowNumber: Campos faltantes: " . implode(', ', $missingFields);
                 continue;
             }
-            
+
+            // Validate identifiers and field sizes before touching the database.
+            if (!preg_match('/^[A-Za-z0-9-]+$/', $data['hbl'])
+                || mb_strlen($data['hbl']) > 64
+                || !preg_match('/^[A-Za-z0-9-]+$/', $data['ci'])
+                || mb_strlen($data['ci']) > 64
+                || !ctype_digit($data['origen'])
+                || (int) $data['origen'] < 1
+                || mb_strlen($data['description']) > 1000
+                || mb_strlen($data['manifest']) > 255
+                || mb_strlen($data['name']) > 255
+                || mb_strlen($data['phone']) > 64
+                || mb_strlen($data['address']) > 255
+                || mb_strlen($data['city']) > 128
+                || mb_strlen($data['state']) > 128) {
+                $errorLog[] = "Fila $rowNumber: Uno o más campos tienen formato o longitud inválidos.";
+                continue;
+            }
+
+            if (isset($seenHbl[$data['hbl']])) {
+                $errorLog[] = "Fila $rowNumber: HBL duplicado dentro del manifiesto: {$data['hbl']}";
+                $stats['duplicates']++;
+                continue;
+            }
+            $seenHbl[$data['hbl']] = true;
+
+            $originId = (int) $data['origen'];
+            $originStmt->bind_param('i', $originId);
+            $originStmt->execute();
+            if (!$originStmt->get_result()->fetch_row()) {
+                $errorLog[] = "Fila $rowNumber: Origen inexistente: {$data['origen']}";
+                continue;
+            }
+
             // Validar peso (debe ser numérico y > 0)
-            if (!is_numeric($data['weight']) || floatval($data['weight']) <= 0) {
+            if (!is_numeric($data['weight']) || !is_finite((float) $data['weight']) || floatval($data['weight']) <= 0) {
                 $errorLog[] = "Fila $rowNumber: Peso inválido: {$data['weight']}";
                 continue;
             }
             
-            // Insertar shipment
+            if (!is_numeric($data['tariff']) || !is_finite((float) $data['tariff']) || (float) $data['tariff'] < 0) {
+                $errorLog[] = "Fila $rowNumber: Tarifa inválida: {$data['tariff']}";
+                continue;
+            }
+
+            // Keep each manifest row atomic: a failed client/shipment operation
+            // must not leave the other record committed.
+            $savepoint = 'row_' . $rowNumber;
+            if (!$conn->query("SAVEPOINT \`$savepoint\`")) {
+                throw new Exception("No se pudo preparar la transacción de la fila $rowNumber");
+            }
+
+            // Insertar/actualizar cliente first.
+            $clientAffected = 0;
+            $stmt_client->bind_param(
+                "ssssss",
+                $data['ci'],
+                $data['name'],
+                $data['phone'],
+                $data['address'],
+                $data['city'],
+                $data['state']
+            );
+
+            if (!$stmt_client->execute()) {
+                $errorLog[] = "Fila $rowNumber: Error al insertar cliente: " . $stmt_client->error;
+                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
+                continue;
+            }
+
+            $clientAffected = $conn->affected_rows;
+
+            // Insertar shipment.
             $stmt_shipment->bind_param(
                 "sssdsds",
                 $data['hbl'],
@@ -320,33 +404,18 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 $data['tariff'],
                 $data['manifest']
             );
-            
-            if ($stmt_shipment->execute()) {
-                $stats['shipments']++;
-            } else {
+
+            if (!$stmt_shipment->execute()) {
                 $errorLog[] = "Fila $rowNumber: Error al insertar shipment: " . $stmt_shipment->error;
+                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
                 continue;
             }
-            
-            // Insertar cliente
-            $stmt_client->bind_param(
-                "ssssss",
-                $data['ci'],
-                $data['name'],
-                $data['phone'],
-                $data['address'],
-                $data['city'],
-                $data['state']
-            );
-            
-            if ($stmt_client->execute()) {
-                if ($conn->affected_rows > 0) {
-                    $stats['clients']++;
-                }
-            } else {
-                $errorLog[] = "Fila $rowNumber: Error al insertar cliente: " . $stmt_client->error;
-                continue;
+
+            $stats['shipments']++;
+            if ($clientAffected > 0) {
+                $stats['clients']++;
             }
+            $conn->query("RELEASE SAVEPOINT \`$savepoint\`");
             
             $stats['total'] = $stats['shipments'];
         }
@@ -362,14 +431,19 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                     implode(' | ', array_slice($errorLog, -3)));
             }
             
-            // Guardar errores en log
-            $logFile = '../logs/import_errors_' . date('Y-m-d') . '.log';
+            // Save import errors outside the public uploads area.
+            $logDir = __DIR__ . '/../logs';
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0750, true);
+            }
+            $logFile = $logDir . '/import_errors_' . date('Y-m-d') . '.log';
             foreach ($errorLog as $error) {
                 error_log("[" . date('Y-m-d H:i:s') . "] $error\n", 3, $logFile);
             }
         }
         
         $conn->commit();
+        $originStmt->close();
         
     } catch (Exception $e) {
         $conn->rollback();

@@ -34,7 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = trim((string)($_POST['status'] ?? 'draft'));
     $clients = array_values(array_unique(array_filter(array_map('trim', $_POST['clients']), static fn($ci) => $ci !== '')));
 
-    if ($name === '' || $driver === false || $vehicule === false || $origen === false
+    if ($name === '' || mb_strlen($name) > 255 || $driver === false || $vehicule === false || $origen === false
+        || $driver < 1 || $vehicule < 1 || $origen < 1
         || !in_array($status, ['draft', 'delivering'], true) || count($clients) === 0) {
         $_SESSION['error_message'] = 'Datos de ruta inválidos.';
         header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
@@ -47,6 +48,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Start transaction
         $conn->begin_transaction();
 
+        // Validate referenced entities before creating the route.
+        foreach ([
+            ['table' => 'drivers', 'id' => $driver, 'label' => 'Conductor'],
+            ['table' => 'vehicules', 'id' => $vehicule, 'label' => 'Vehículo'],
+            ['table' => 'origen', 'id' => $origen, 'label' => 'Origen'],
+        ] as $entity) {
+            $entityStmt = $conn->prepare("SELECT 1 FROM `{$entity['table']}` WHERE `id` = ? LIMIT 1");
+            $entityStmt->bind_param('i', $entity['id']);
+            $entityStmt->execute();
+            if (!$entityStmt->get_result()->fetch_row()) {
+                $entityStmt->close();
+                throw new Exception($entity['label'] . ' no encontrado.');
+            }
+            $entityStmt->close();
+        }
+
+        // Every selected client must exist and have at least one warehouse shipment at this origin.
+        $clientStmt = $conn->prepare("SELECT 1 FROM `clients` WHERE `ci` = ? LIMIT 1");
+        $shipmentCheck = $conn->prepare("SELECT COUNT(*) AS total FROM `shipments` WHERE `ci` = ? AND `status` = 'warehouse' AND `origen` = ?");
+        foreach ($clients as $client_id) {
+            $clientStmt->bind_param('s', $client_id);
+            $clientStmt->execute();
+            if (!$clientStmt->get_result()->fetch_row()) {
+                throw new Exception("Cliente $client_id no encontrado.");
+            }
+            $shipmentCheck->bind_param('si', $client_id, $origen);
+            $shipmentCheck->execute();
+            if ((int)$shipmentCheck->get_result()->fetch_assoc()['total'] === 0) {
+                throw new Exception("El cliente $client_id no tiene envíos en almacén para este origen.");
+            }
+        }
+        $clientStmt->close();
+        $shipmentCheck->close();
+
         // Insert delivery record using prepared statement
         $stmt = $conn->prepare("INSERT INTO `delivery` (
                                 `name`, 
@@ -56,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 `shipments`,
                                 `origen`
                             ) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $name, $driver, $vehicule, $status, $clients, $origen);
+        $stmt->bind_param("siissi", $name, $driver, $vehicule, $status, $clients_string, $origen);
         $stmt->execute();
         $id = $conn->insert_id;
         $stmt->close();

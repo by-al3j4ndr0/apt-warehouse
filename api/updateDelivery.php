@@ -35,12 +35,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Sanitize and prepare data - TREAT AS INTEGERS
-    $id = intval($_POST['deliveryId']);
-    $name = $_POST['name'];
-    $driver = intval($_POST['driver']);  // Driver as integer (ID)
-    $vehicule = intval($_POST['vehicule']);  // Vehicule as integer (ID)
-    $origen = intval($_POST['origen']);  // Origen as integer
-    $status = trim($_POST['status'] ?? 'delivering');
+    $id = filter_var($_POST['deliveryId'], FILTER_VALIDATE_INT);
+    $name = trim((string)$_POST['name']);
+    $driver = filter_var($_POST['driver'], FILTER_VALIDATE_INT);
+    $vehicule = filter_var($_POST['vehicule'], FILTER_VALIDATE_INT);
+    $origen = filter_var($_POST['origen'], FILTER_VALIDATE_INT);
+    $status = trim((string)($_POST['status'] ?? 'delivering'));
+
+    $clients_after = array_values(array_unique(array_filter(array_map('trim', $_POST['clients']), static fn($ci) => $ci !== '')));
+
+    if ($id === false || $driver === false || $vehicule === false || $origen === false
+        || $id < 1 || $driver < 1 || $vehicule < 1 || $origen < 1 || $name === '' || mb_strlen($name) > 255
+        || count($clients_after) === 0) {
+        $_SESSION['error_message'] = 'Datos de ruta inválidos.';
+        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '../delivery/deliveries.php'));
+        exit();
+    }
 
     $allowedStatuses = ['draft', 'delivering', 'finished'];
     if (!in_array($status, $allowedStatuses, true)) {
@@ -87,9 +97,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $status = 'finished';
     }
     
-    // Get selected clients (those that are checked) - clients are strings (CI)
-    $clients_after = array_map('trim', $_POST['clients']);
-    $clients_after = array_values($clients_after);
+    // Validate referenced entities before changing route membership.
+    foreach ([
+        ['table' => 'drivers', 'id' => $driver, 'label' => 'Conductor'],
+        ['table' => 'vehicules', 'id' => $vehicule, 'label' => 'Vehículo'],
+        ['table' => 'origen', 'id' => $origen, 'label' => 'Origen'],
+    ] as $entity) {
+        $entityStmt = $conn->prepare("SELECT 1 FROM `{$entity['table']}` WHERE `id` = ? LIMIT 1");
+        $entityStmt->bind_param('i', $entity['id']);
+        $entityStmt->execute();
+        if (!$entityStmt->get_result()->fetch_row()) {
+            $entityStmt->close();
+            throw new Exception($entity['label'] . ' no encontrado.');
+        }
+        $entityStmt->close();
+    }
+
     $clients_string = implode(', ', $clients_after);
     
     error_log("Processing delivery ID: $id (int)");
@@ -116,11 +139,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $row = $result->fetch_assoc();
         $clients_before = !empty($row['shipments']) ? explode(", ", $row['shipments']) : [];
-        $clients_before = array_map('trim', $clients_before);
-        $clients_before = array_values($clients_before);
+        $clients_before = array_values(array_unique(array_filter($clients_before, static fn($ci) => $ci !== '')));
         $clients_stmt->close();
         
         error_log("Previous clients: " . print_r($clients_before, true));
+
+        // Validate every selected client and require at least one shipment that can belong to this route.
+        $clientStmt = $conn->prepare("SELECT 1 FROM `clients` WHERE `ci` = ? LIMIT 1");
+        $shipmentCheck = $conn->prepare("SELECT COUNT(*) AS total FROM `shipments` WHERE `ci` = ? AND `origen` = ? AND (`status` = 'warehouse' OR `route_id` = ?)");
+        foreach ($clients_after as $client_id) {
+            $clientStmt->bind_param('s', $client_id);
+            $clientStmt->execute();
+            if (!$clientStmt->get_result()->fetch_row()) {
+                throw new Exception("Cliente $client_id no encontrado.");
+            }
+            $shipmentCheck->bind_param('sii', $client_id, $origen, $id);
+            $shipmentCheck->execute();
+            if ((int)$shipmentCheck->get_result()->fetch_assoc()['total'] === 0) {
+                throw new Exception("El cliente $client_id no tiene envíos disponibles para esta ruta.");
+            }
+        }
+        $clientStmt->close();
+        $shipmentCheck->close();
+
+        if ($currentRoute['status'] === 'finished'
+            && (array_diff($clients_before, $clients_after) !== [] || array_diff($clients_after, $clients_before) !== [])) {
+            throw new Exception('Una ruta finalizada no puede cambiar sus envíos asignados.');
+        }
 
         // Determine changes
         $clients_to_remove = array_diff($clients_before, $clients_after);

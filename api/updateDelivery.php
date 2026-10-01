@@ -7,10 +7,9 @@ requireCsrf();
 if ($_SERVER["REQUEST_METHOD"] !== "POST") { http_response_code(405); exit('Method Not Allowed'); }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Enable error logging
+    // Keep logs free of submitted form data and credentials.
     error_log("=== Delivery Update Started ===");
-    error_log("POST data: " . print_r($_POST, true));
-    
+
     // Initialize variables and validate input
     $errors = [];
     $requiredFields = ['deliveryId', 'name', 'driver', 'vehicule', 'origen'];
@@ -30,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
         error_log("Validation errors: " . print_r($errors, true));
-        header("Location: " . $_SERVER['HTTP_REFERER']);
+        header("Location: ../delivery/deliveries.php");
         exit();
     }
 
@@ -142,7 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $clients_before = array_values(array_unique(array_filter($clients_before, static fn($ci) => $ci !== '')));
         $clients_stmt->close();
         
-        error_log("Previous clients: " . print_r($clients_before, true));
+        error_log("Previous client count: " . count($clients_before));
 
         // Validate every selected client and require at least one shipment that can belong to this route.
         $clientStmt = $conn->prepare("SELECT 1 FROM `clients` WHERE `ci` = ? LIMIT 1");
@@ -171,8 +170,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $clients_to_remove = array_diff($clients_before, $clients_after);
         $clients_to_add = array_diff($clients_after, $clients_before);
         
-        error_log("Clients to remove: " . print_r($clients_to_remove, true));
-        error_log("Clients to add: " . print_r($clients_to_add, true));
+        error_log("Clients to remove count: " . count($clients_to_remove));
+        error_log("Clients to add count: " . count($clients_to_add));
 
         // IMPORTANT: First, remove all shipments from this route for clients that were unchecked
         if (!empty($clients_to_remove)) {
@@ -360,7 +359,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['error_message'] = "Failed to update delivery: " . $e->getMessage();
         
         // Redirect back to the form with error
-        header("Location: " . $_SERVER['HTTP_REFERER']);
+        header("Location: ../delivery/deliveries.php");
         exit();
     }
 } else {

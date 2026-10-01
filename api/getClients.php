@@ -2,15 +2,15 @@
     require_once __DIR__ . '/auth.php';
     requireApiLogin(true);
 
-    // Verificar autenticación
-    if (!isset($_SESSION['username'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'No autorizado']);
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'Method Not Allowed']);
         exit();
     }
 
     // Configurar cabeceras
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
 
     $request = json_decode(file_get_contents('php://input'), true);
 
@@ -22,9 +22,15 @@
 
     $warehouse_status = "warehouse";
     $warehouse_id = "0";
-    $origen_id = intval($request['origen_id']);
-    $status = $request['selected_status'] ?? '';
-    $delivery_id = intval($request['delivery_id'] ?? 0);
+    $origen_id = filter_var($request['origen_id'], FILTER_VALIDATE_INT);
+    $status = (string) ($request['selected_status'] ?? '');
+    $delivery_id = filter_var($request['delivery_id'] ?? 0, FILTER_VALIDATE_INT);
+    if ($origen_id === false || $origen_id < 1 || $delivery_id === false || $delivery_id < 0
+        || !in_array($status, ['', 'draft', 'delivering'], true)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Parámetros inválidos']);
+        exit();
+    }
 
     // Conectar a la base de datos
     include 'db_connect.php';

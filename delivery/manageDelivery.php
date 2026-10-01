@@ -5,7 +5,7 @@
     include '../api/manageDeliveryModel.php';
     
     // Validar y obtener el modelo
-    $model = isset($_GET['model']) ? $_GET['model'] : '';
+    $model = isset($_GET['model']) ? trim((string) $_GET['model']) : '';
 
     // Ejecutar según el modelo
     switch ($model) {
@@ -13,9 +13,13 @@
             newDelivery();
             break;
         case 'update_delivery':
-            if(isset($_GET['id'])) {
-                updateDelivery($_GET['id']);
+            if (!isset($_GET['id']) || !ctype_digit((string) $_GET['id']) || (int) $_GET['id'] < 1) {
+                http_response_code(400);
+                $_SESSION['error_message'] = "ID de ruta inválido";
+                break;
             }
+
+            updateDelivery((int) $_GET['id']);
             break;
         default:
             // Si no hay modelo válido, mostrar error o redirigir

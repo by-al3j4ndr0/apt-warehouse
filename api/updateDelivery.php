@@ -139,8 +139,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $row = $result->fetch_assoc();
         $clients_before = !empty($row['shipments']) ? explode(", ", $row['shipments']) : [];
-        $clients_before = array_map('trim', $clients_before);
-        $clients_before = array_values($clients_before);
+        $clients_before = array_values(array_unique(array_filter($clients_before, static fn($ci) => $ci !== '')));
         $clients_stmt->close();
         
         error_log("Previous clients: " . print_r($clients_before, true));
@@ -163,7 +162,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $clientStmt->close();
         $shipmentCheck->close();
 
-        if ($currentRoute['status'] === 'finished' && array_diff($clients_before, $clients_after) !== []) {
+        if ($currentRoute['status'] === 'finished'
+            && (array_diff($clients_before, $clients_after) !== [] || array_diff($clients_after, $clients_before) !== [])) {
             throw new Exception('Una ruta finalizada no puede cambiar sus envíos asignados.');
         }
 

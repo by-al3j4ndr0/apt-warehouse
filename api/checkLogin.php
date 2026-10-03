@@ -20,7 +20,7 @@ if ($username === '' || $password === '') {
     exit();
 }
 
-$stmt = $conn->prepare("SELECT password, first_name, last_name, is_staff, origen FROM auth_user WHERE username = ?");
+$stmt = $conn->prepare("SELECT `password`, `first_name`, `last_name`, `is_staff`, `origen` FROM `auth_user` WHERE `username` = ?");
 $stmt->bind_param("s", $username);
 $stmt->execute();
 $stmt->store_result();
@@ -32,7 +32,7 @@ if ($stmt->num_rows === 1) {
 
     // Prefer PHP's password hashing API. Keep legacy PBKDF2 verification only
     // to support existing accounts during a one-time migration.
-    if (password_get_info($db_password)['algo'] !== 0) {
+    if (password_get_info($db_password)['algo'] === 0) {
         $valid = password_verify($password, $db_password);
     } else {
         $pieces = explode("$", $db_password);
@@ -51,7 +51,7 @@ $stmt->close();
 if ($valid && password_get_info($db_password)['algo'] === 0) {
     // Upgrade legacy credentials after a successful login.
     $newHash = password_hash($password, PASSWORD_DEFAULT);
-    $upgradeStmt = $conn->prepare("UPDATE auth_user SET password = ? WHERE username = ?");
+    $upgradeStmt = $conn->prepare("UPDATE `auth_user` SET `password` = ? WHERE `username` = ?");
     $upgradeStmt->bind_param("ss", $newHash, $username);
     $upgradeStmt->execute();
     $upgradeStmt->close();

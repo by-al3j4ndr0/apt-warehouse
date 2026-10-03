@@ -280,7 +280,14 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             throw new Exception("Error preparando statement shipments: " . $conn->error);
         }
         
-        $stmt_client = $conn->prepare("INSERT INTO `clients` (`ci`, `name`, `phone`, `address`, `city`, `state`) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `name` = VALUES(name), `phone` = VALUES(phone), `address` = VALUES(address), `city` = VALUES(city), `state` = VALUES(state)");
+        $stmt_client = $conn->prepare("INSERT INTO `clients` (`ci`, `name`, `phone`, `address`, `city`, `state`)
+                                        VALUES (?, ?, ?, ?, ?, ?)
+                                        ON DUPLICATE KEY UPDATE
+                                        `name`    = VALUE(name),
+                                        `phone`   = VALUE(phone),
+                                        `address` = VALUE(address),
+                                        `city`    = VALUE(city),
+                                        `state`   = VALUE(state);");
         if (!$stmt_client) {
             throw new Exception("Error preparando statement clients: " . $conn->error);
         }
@@ -306,7 +313,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             foreach ($requiredFields as $field) {
                 if ($field === 'tariff') {
                     // Para tariff: permitir 0, solo verificar que exista
-                    if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
+                    if (!isset($data[$field])) {
                         $missingFields[] = $field;
                     }
                 } else {
@@ -361,15 +368,11 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
                 continue;
             }
             
-            if (!is_numeric($data['tariff']) || !is_finite((float) $data['tariff']) || (float) $data['tariff'] < 0) {
-                $errorLog[] = "Fila $rowNumber: Tarifa inválida: {$data['tariff']}";
-                continue;
-            }
 
             // Keep each manifest row atomic: a failed client/shipment operation
             // must not leave the other record committed.
             $savepoint = 'row_' . $rowNumber;
-            if (!$conn->query("SAVEPOINT \`$savepoint\`")) {
+            if (!$conn->query("SAVEPOINT `$savepoint`")) {
                 throw new Exception("No se pudo preparar la transacción de la fila $rowNumber");
             }
 
@@ -387,7 +390,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
 
             if (!$stmt_client->execute()) {
                 $errorLog[] = "Fila $rowNumber: Error al insertar cliente: " . $stmt_client->error;
-                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
+                $conn->query("ROLLBACK TO SAVEPOINT `$savepoint`");
                 continue;
             }
 
@@ -407,7 +410,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
 
             if (!$stmt_shipment->execute()) {
                 $errorLog[] = "Fila $rowNumber: Error al insertar shipment: " . $stmt_shipment->error;
-                $conn->query("ROLLBACK TO SAVEPOINT \`$savepoint\`");
+                $conn->query("ROLLBACK TO SAVEPOINT `$savepoint`");
                 continue;
             }
 
@@ -415,7 +418,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             if ($clientAffected > 0) {
                 $stats['clients']++;
             }
-            $conn->query("RELEASE SAVEPOINT \`$savepoint\`");
+            $conn->query("RELEASE SAVEPOINT `$savepoint`");
             
             $stats['total'] = $stats['shipments'];
         }

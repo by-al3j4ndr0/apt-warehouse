@@ -1,5 +1,5 @@
 'use strict';
-const csrfToken = json_encode($csrf, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+const csrfToken = window.APP_CONFIG.csrfToken;
 const listElement = document.getElementById('log-list');
 const contentElement = document.getElementById('content');
 const statusElement = document.getElementById('status');
@@ -26,7 +26,7 @@ async function requestJson(url, options = {}) {
 async function loadLogs() {
     setStatus('Cargando archivos…');
     try {
-        const data = await requestJson('?action=list');
+        const data = await requestJson('../api/logView.php?action=list');
         listElement.replaceChildren();
         data.logs.forEach(log => {
             const item = document.createElement('li');

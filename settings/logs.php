@@ -12,7 +12,10 @@ requireLogin(true);
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../resources/css/logView.css">
+    <link rel="stylesheet" href="../resources/css/custom.css">
+    <link rel="stylesheet" href="../resources/css/font-awesome-all.css">
     <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
+    <script src="../resources/js/bootstrap.bundle.min.js"></script>
     <title>Administración de logs</title>
 </head>
 <body>

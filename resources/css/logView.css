@@ -1,0 +1,23 @@
+:root { color-scheme: light; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+        body { margin: 0; background: #f3f5f8; color: #1f2937; }
+        main { max-width: 1200px; margin: 28px auto; padding: 0 18px; }
+        h1 { margin-bottom: 6px; }
+        .muted { color: #64748b; }
+        .layout { display: grid; grid-template-columns: minmax(260px, 350px) minmax(0, 1fr); gap: 18px; margin-top: 22px; }
+        .panel { background: white; border: 1px solid #dbe2ea; border-radius: 10px; padding: 16px; min-width: 0; box-shadow: 0 2px 8px #0f172a0a; }
+        .log-list { list-style: none; margin: 12px 0 0; padding: 0; }
+        .log-item { display: block; width: 100%; text-align: left; margin: 7px 0; padding: 11px; border: 1px solid #dbe2ea; border-radius: 7px; background: #fff; color: inherit; cursor: pointer; overflow-wrap: anywhere; }
+        .log-item[aria-pressed="true"] { border-color: #2563eb; background: #eff6ff; }
+        .log-item:disabled { opacity: .55; cursor: not-allowed; }
+        .meta { display: block; margin-top: 5px; font-size: .82rem; color: #64748b; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+        button { font: inherit; }
+        .action { border: 0; border-radius: 7px; padding: 9px 13px; cursor: pointer; }
+        .secondary { background: #e2e8f0; color: #1e293b; }
+        .danger { background: #b91c1c; color: #fff; }
+        .action:disabled { opacity: .55; cursor: not-allowed; }
+        pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #0b1220; color: #e2e8f0; border-radius: 8px; padding: 16px; min-height: 340px; max-height: 65vh; overflow: auto; font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .notice { padding: 10px 12px; border-radius: 7px; margin-top: 14px; background: #eff6ff; color: #1d4ed8; }
+        .notice.error { background: #fef2f2; color: #991b1b; }
+        .warning { font-size: .9rem; color: #92400e; background: #fffbeb; padding: 10px; border-radius: 7px; margin-top: 14px; }
+        @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } pre { min-height: 260px; } }

@@ -173,7 +173,7 @@
                     <div class="loading">Seleccione un origen para ver los clientes</div>
                 </div>
                 <div class="container p-5 d-flex flex-column align-items-right">
-                    <button class="btn btn-primary mb-2" type="submit" style="font-weight:bolder;color:white;">
+                    <button id="saveDeliveryBtn" class="btn btn-primary mb-2" type="submit" style="font-weight:bolder;color:white;">
                         Guardar Ruta
                     </button>
                 </div>
@@ -182,7 +182,6 @@
     </div>
 
     <script src="../resources/js/bootstrap.bundle.min.js"></script>
-    <script src="../resources/js/custom.js"></script>
     <script src="../resources/js/delivery.js"></script>
     
     <script>

@@ -316,6 +316,20 @@
         }
     });
 
+    function handleShortcut(event) {
+        if (event.ctrlKey && event.key.toLowerCase() === "g") {
+            event.preventDefault();
+
+            const saveBtn = document.getElementById('saveDeliveryBtn');
+
+            if (saveBtn && !saveBtn.disabled) {
+                saveBtn.click();
+            }
+        }
+    }
+
+    document.addEventListener('keydown', handleShortcut);
+
 })();
 
     /* ================================================================

@@ -1,5 +1,5 @@
-const CACHE="apt-scanner-v2";
-const ASSETS=["/scanner/","/scanner/style.css","/scanner/app.js","/scanner/manifest.webmanifest"];
+const CACHE="apt-scanner-v3";
+const ASSETS=["/scanner/","/scanner/style.css","/scanner/app.js","/scanner/manifest.webmanifest","/scanner/icons/icon.svg"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting();});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))));self.clients.claim();});
 self.addEventListener("fetch",event=>{

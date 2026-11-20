@@ -102,7 +102,7 @@ async function render(){
 async function scan(code){
  code=String(code||"").trim();if(!code||processing||!manifest)return;processing=true;$("scanInput").value="";
  try{
-  const match=rows.find(item=>item.code===code),all=await requestResult(store("scans").getAll()),already=all.some(s=>s.code===code&&s.status!=="NOT_FOUND");
+  const match=rows.find(item=>item.code===code),all=await requestResult(store("scans").getAll()),already=all.some(s=>s.manifest===manifest&&s.code===code&&s.status!=="NOT_FOUND");
   const status=!match?"NOT_FOUND":already?"DUPLICATE":"FOUND";
   const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2),manifest,source:manifestSource,code,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
   await requestResult(store("scans","readwrite").put(record));
@@ -133,7 +133,7 @@ async function sync(){
 }
 async function init(){
  db=await openDb();
- $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;
+ $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;$("manifestName").readOnly=false;
   try{await saveManifest(name,parseCsv(await file.text()),file.name,"csv");$("result").className="result neutral";$("result").textContent="Listado listo. Puedes comenzar a escanear.";}catch(err){$("manifestStatus").textContent=err.message;}e.target.value="";
  });
  $("scanButton").addEventListener("click",()=>scan($("scanInput").value));

@@ -100,7 +100,9 @@ include '../api/getInfoById.php';
     $conn->close();
 
     function modStatus(string $status) {
-        if ($status == 'draft') {
+        if ($status == 'at_customs') {
+            return 'En aduana';
+        } else if ($status == 'draft') {
             return 'Borrador';
         } else if ($status == 'delivering') {
             return 'Entregando';

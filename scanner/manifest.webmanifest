@@ -1,0 +1,1 @@
+{"name":"APT Warehouse - Control QR","short_name":"APT Control QR","description":"Verificación y registro de mercancías mediante códigos QR.","lang":"es","start_url":"/scanner/","scope":"/","display":"standalone","background_color":"#f3f6f8","theme_color":"#123b5d","orientation":"portrait"}

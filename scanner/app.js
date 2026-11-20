@@ -70,7 +70,7 @@ async function scan(code){
  try{
   const match=rows.find(item=>item.code===code),all=await requestResult(store("scans").getAll()),already=all.some(s=>s.code===code&&s.status!=="NOT_FOUND");
   const status=!match?"NOT_FOUND":already?"DUPLICATE":"FOUND";
-  const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random(),manifest,code,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
+  const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2),manifest,code,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
   await requestResult(store("scans","readwrite").put(record));
   const result=$("result");result.className="result "+(status==="FOUND"?"found":status==="DUPLICATE"?"duplicate":"missing");
   result.textContent=status==="FOUND"?"✓ CÓDIGO ENCONTRADO":status==="DUPLICATE"?"⚠ ESTE CÓDIGO YA FUE ESCANEADO":"✕ CÓDIGO NO INCLUIDO EN EL LISTADO";

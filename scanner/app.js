@@ -68,7 +68,7 @@ async function render(){
 async function scan(code){
  code=String(code||"").trim();if(!code||processing||!manifest)return;processing=true;$("scanInput").value="";
  try{
-  const match=rows.find(item=>item.code===code),all=await getScans(),already=all.some(s=>s.code===code&&s.status!=="NOT_FOUND");
+  const match=rows.find(item=>item.code===code),all=await requestResult(store("scans").getAll()),already=all.some(s=>s.code===code&&s.status!=="NOT_FOUND");
   const status=!match?"NOT_FOUND":already?"DUPLICATE":"FOUND";
   const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random(),manifest,code,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
   await requestResult(store("scans","readwrite").put(record));

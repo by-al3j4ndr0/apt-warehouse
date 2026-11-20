@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const DB_NAME = "aptWarehouseScanner";
 const DB_VERSION = 1;
-let db, rows = [], manifest = "", processing = false;
+let db, rows = [], manifest = "", manifestSource = "csv", processing = false;
 
 function openDb() {
  return new Promise((resolve,reject)=>{
@@ -66,7 +66,7 @@ async function loadSelectedSystemManifest(){
   const response=await fetch(url,{credentials:"same-origin",headers:{"Accept":"application/json"}});
   const data=await response.json();if(!response.ok)throw new Error(data.error||"Error HTTP "+response.status);
   if(!data.shipments||!data.shipments.length)throw new Error("El manifiesto no contiene envíos disponibles para control QR.");
-  await saveManifest(name,data.shipments,"Manifiesto del sistema");
+  await saveManifest(name,data.shipments,"Manifiesto del sistema","system");
   $("manifestName").value=name;$("manifestName").readOnly=true;
   $("result").className="result neutral";$("result").textContent="Manifiesto del sistema cargado. Puedes comenzar a escanear.";
   $("systemManifestStatus").textContent="Cargados "+data.total+" envíos: "+data.pending+" pendientes y "+data.entered+" ya recibidos.";
@@ -75,7 +75,7 @@ async function loadSelectedSystemManifest(){
 }
 async function loadManifest(name){
  const saved=await requestResult(store("manifests").get(name));if(!saved)return false;
- manifest=name;rows=saved.rows;$("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
+ manifest=name;rows=saved.rows;manifestSource=saved.source||"csv";$("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
  $("manifestStatus").textContent="Listado activo: "+name+" ("+rows.length+" códigos).";enableScanner(true);await render();return true;
 }
 async function saveManifest(name,data,fileName){
@@ -104,7 +104,7 @@ async function scan(code){
  try{
   const match=rows.find(item=>item.code===code),all=await requestResult(store("scans").getAll()),already=all.some(s=>s.code===code&&s.status!=="NOT_FOUND");
   const status=!match?"NOT_FOUND":already?"DUPLICATE":"FOUND";
-  const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2),manifest,code,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
+  const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2),manifest,source:manifestSource,code,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
   await requestResult(store("scans","readwrite").put(record));
   const result=$("result");result.className="result "+(status==="FOUND"?"found":status==="DUPLICATE"?"duplicate":"missing");
   result.textContent=status==="FOUND"?"✓ CÓDIGO ENCONTRADO":status==="DUPLICATE"?"⚠ ESTE CÓDIGO YA FUE ESCANEADO":"✕ CÓDIGO NO INCLUIDO EN EL LISTADO";
@@ -134,7 +134,7 @@ async function sync(){
 async function init(){
  db=await openDb();
  $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;
-  try{await saveManifest(name,parseCsv(await file.text()),file.name);$("result").className="result neutral";$("result").textContent="Listado listo. Puedes comenzar a escanear.";}catch(err){$("manifestStatus").textContent=err.message;}e.target.value="";
+  try{await saveManifest(name,parseCsv(await file.text()),file.name,"csv");$("result").className="result neutral";$("result").textContent="Listado listo. Puedes comenzar a escanear.";}catch(err){$("manifestStatus").textContent=err.message;}e.target.value="";
  });
  $("scanButton").addEventListener("click",()=>scan($("scanInput").value));
  $("scanInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();scan($("scanInput").value);}});

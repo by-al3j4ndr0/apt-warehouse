@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const DB_NAME = "aptWarehouseScanner";
 const DB_VERSION = 1;
-let db, rows = [], manifest = "", manifestSource = "csv", processing = false;
+let db, rows = [], manifest = "", manifestSource = "csv", processing = false, scanTimer = null, deferredInstallPrompt = null;
 
 function openDb() {
  return new Promise((resolve,reject)=>{
@@ -137,7 +137,12 @@ async function init(){
   try{await saveManifest(name,parseCsv(await file.text()),file.name,"csv");$("result").className="result neutral";$("result").textContent="Listado listo. Puedes comenzar a escanear.";}catch(err){$("manifestStatus").textContent=err.message;}e.target.value="";
  });
  $("scanButton").addEventListener("click",()=>scan($("scanInput").value));
- $("scanInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();scan($("scanInput").value);}});
+ $("scanInput").addEventListener("keyup",e=>{
+  clearTimeout(scanTimer);
+  if(e.key==="Enter"){e.preventDefault();scan($("scanInput").value);return;}
+  // El lector HID escribe cada carácter como teclado; procesamos al terminar la ráfaga.
+  scanTimer=setTimeout(()=>{if($("scanInput").value.trim())scan($("scanInput").value);},400);
+ });
  $("exportButton").addEventListener("click",exportCsv);$("syncButton").addEventListener("click",sync);
  $("loadSystemManifest").addEventListener("click",loadSelectedSystemManifest);
  $("manifestName").addEventListener("change",async()=>{const name=$("manifestName").value.trim();if(name)await loadManifest(name);});
@@ -146,6 +151,16 @@ async function init(){
  await loadSystemManifestList();
  const names=await requestResult(store("manifests").getAllKeys());if(names.length)await loadManifest(names[names.length-1]);
  if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+ window.addEventListener("beforeinstallprompt",event=>{
+  event.preventDefault();deferredInstallPrompt=event;$("installButton").hidden=false;
+ });
+ $("installButton").addEventListener("click",async()=>{
+  if(!deferredInstallPrompt)return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;$("installButton").hidden=true;
+ });
+ window.addEventListener("appinstalled",()=>{$("installButton").hidden=true;});
 }
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>{$("manifestStatus").textContent="Error al iniciar almacenamiento local: "+e.message;}));
 })();

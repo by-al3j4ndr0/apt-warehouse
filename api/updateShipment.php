@@ -20,7 +20,7 @@ $status = trim((string)($_POST['shipment_status'] ?? ''));
 $routeId = filter_input(INPUT_POST, 'shipment_route_id', FILTER_VALIDATE_INT);
 $description = trim((string)($_POST['shipment_description'] ?? ''));
 
-$allowedStatuses = ['warehouse', 'draft', 'delivering', 'finished', 'detained'];
+$allowedStatuses = ['at_customs', 'warehouse', 'draft', 'delivering', 'finished', 'detained'];
 
 if ($hbl === '' || !preg_match('/^[A-Za-z0-9-]+$/', $hbl) || mb_strlen($hbl) > 64
     || $ci === '' || $origen === false || $origen === null
@@ -46,6 +46,7 @@ try {
     }
 
     $transitions = [
+        'at_customs' => ['at_customs'],
         'warehouse' => ['warehouse', 'draft', 'delivering', 'detained'],
         'draft' => ['draft', 'warehouse', 'delivering', 'detained'],
         'delivering' => ['delivering', 'finished', 'detained'],
@@ -57,12 +58,12 @@ try {
         throw new Exception('Invalid shipment status transition');
     }
 
-    if ($status === 'warehouse' && $routeId !== 0) {
-        throw new Exception('Warehouse shipments cannot have a route');
+    if (in_array($status, ['at_customs', 'warehouse'], true) && $routeId !== 0) {
+        throw new Exception('Customs and warehouse shipments cannot have a route');
     }
 
-    if ($status !== 'warehouse' && $routeId === 0) {
-        throw new Exception('Non-warehouse shipments must have a route');
+    if (!in_array($status, ['at_customs', 'warehouse'], true) && $routeId === 0) {
+        throw new Exception('Routed shipments must have a route');
     }
 
     if ($current['status'] === 'finished'

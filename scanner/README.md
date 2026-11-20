@@ -29,3 +29,11 @@ Se admiten delimitadores coma o punto y coma, encabezados con o sin acentos. El 
 - El modo de salida para transferencias entre almacenes queda pendiente. La salida a distribución sigue siendo responsabilidad del módulo `Deliveries`.
 - El CSV se procesa localmente; el servidor no recibe el archivo maestro.
 - El almacenamiento local pertenece al navegador/dispositivo; borrar sus datos elimina la copia local.
+
+
+## Correcciones de operación y panel web
+- El campo de escaneo procesa el código automáticamente al recibir Enter o cuando termina la ráfaga de escritura HID (400 ms sin nuevas teclas). El módulo web de entradas usa el mismo comportamiento.
+- La PWA incorpora identidad de instalación (nombre, ámbito y URL de inicio dedicados), icono SVG y botón de instalación cuando Chrome emite `beforeinstallprompt`.
+- Para instalar en Chrome, el sitio debe servirse por HTTPS (o localhost en desarrollo). En Android, abre `/scanner/` en Chrome y usa el menú `Instalar aplicación` o el botón de instalación que aparece cuando la PWA es elegible. Si no aparece, revisar Chrome DevTools > Application > Manifest > Installability y verificar que el icono sea accesible.
+- La tabla de pendientes en `warehouse/inOutShipments.php` usa paginación de 25 filas y búsqueda por HBL, manifiesto, destinatario, municipio y provincia. El resumen muestra los pendientes globales y las entradas aceptadas en los últimos 7 días.
+- La consulta de pendientes acepta `page`, `per_page` y `search`; el resumen semanal cuenta eventos `FOUND` en `scanner_events` usando UTC.

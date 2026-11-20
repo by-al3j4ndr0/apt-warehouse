@@ -11,13 +11,17 @@ $csrf = csrfToken();
 </head><body>
 <header class="topbar"><div><strong>APT Warehouse</strong><span>Control de mercancías</span></div><span id="connection" class="pill">Comprobando conexión…</span></header>
 <main>
-<section class="panel"><div class="section-head"><div><h1>Verificación QR</h1><p>Importa el listado CSV y comienza a escanear.</p></div></div>
-<label class="field-label" for="manifestName">Nombre de la sesión / manifiesto</label><input id="manifestName" type="text" placeholder="Ej. Manifiesto 20-11-2026" maxlength="120">
+<section class="panel"><div class="section-head"><div><h1>Verificación QR</h1><p>Selecciona un manifiesto del sistema o importa un CSV.</p></div></div>
+<label class="field-label" for="systemManifestSelect">Manifiestos disponibles en apt-warehouse</label>
+<div class="scan-row"><select id="systemManifestSelect"><option value="">Cargando manifiestos…</option></select><button id="loadSystemManifest" type="button">Cargar</button></div>
+<p class="hint" id="systemManifestStatus">Se mostrarán manifiestos con mercancía pendiente o ya recibida en almacén.</p>
+<div class="manifest-divider">O utiliza un archivo CSV</div>
+<label class="field-label" for="manifestName">Nombre de la sesión / manifiesto CSV</label><input id="manifestName" type="text" placeholder="Ej. Manifiesto 20-11-2026" maxlength="255">
 <label class="file-picker" for="csvFile"><span>＋</span><span><b>Seleccionar archivo CSV</b><small id="fileName">Código, destinatario, municipio y provincia</small></span></label><input id="csvFile" type="file" accept=".csv,text/csv" hidden>
 <div class="manifest-status" id="manifestStatus">No hay ningún listado cargado.</div></section>
 <section class="panel scanner-panel"><div class="section-head"><div><h2>Escanear mercancía</h2><p>Conecta el lector Bluetooth en modo teclado.</p></div><span class="scan-icon">▦</span></div>
 <label class="field-label" for="scanInput">Código QR</label><div class="scan-row"><input id="scanInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Esperando escaneo…" disabled><button id="scanButton" type="button" disabled>Verificar</button></div>
-<div id="result" class="result neutral" role="status" aria-live="polite">Carga un CSV para habilitar el escaneo.</div><div id="shipmentInfo" class="shipment-info" hidden></div>
+<div id="result" class="result neutral" role="status" aria-live="polite">Selecciona un manifiesto o carga un CSV para habilitar el escaneo.</div><div id="shipmentInfo" class="shipment-info" hidden></div>
 <p class="hint">El lector debe enviar Enter al finalizar cada lectura. También puedes escribir un código y pulsar Verificar.</p></section>
 <section class="stats-grid" aria-label="Resumen">
 <div class="stat"><b id="countFound">0</b><span>Encontrados</span></div><div class="stat"><b id="countMissing">0</b><span>No encontrados</span></div><div class="stat"><b id="countDuplicate">0</b><span>Duplicados</span></div><div class="stat"><b id="countPending">0</b><span>Pendientes</span></div></section>

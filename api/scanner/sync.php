@@ -47,15 +47,17 @@ try {
         $manifest = trim((string) ($record['manifest'] ?? 'Entrada de almacén'));
         $code = trim((string) ($record['code'] ?? ''));
         $clientResult = (string) ($record['status'] ?? 'FOUND');
+        $source = (string) ($record['source'] ?? 'csv');
         $recipient = trim((string) ($record['recipient'] ?? ''));
         $municipality = trim((string) ($record['municipality'] ?? ''));
         $province = trim((string) ($record['province'] ?? ''));
         $timestamp = (string) ($record['timestamp'] ?? '');
 
         if (!preg_match('/^[A-Za-z0-9-]{1,80}$/', $eventId)
-            || $manifest === '' || mb_strlen($manifest) > 120
+            || $manifest === '' || mb_strlen($manifest) > 255
             || $code === '' || mb_strlen($code) > 180
             || !in_array($clientResult, $allowedClientResults, true)
+            || !in_array($source, ['csv', 'system'], true)
             || !preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/', $timestamp)) {
             throw new RuntimeException('Datos de escaneo no válidos');
         }
@@ -78,6 +80,9 @@ try {
 
         // The client-side CSV is only a convenience. The database is authoritative.
         if (!$shipment) {
+            $actualResult = 'NOT_FOUND';
+        } elseif ($source === 'system' && (string) $shipment['manifest'] !== $manifest) {
+            // A scanner session may only register codes belonging to its selected manifest.
             $actualResult = 'NOT_FOUND';
         } elseif ($shipment['status'] === 'at_customs') {
             $updateShipment->bind_param('s', $code);

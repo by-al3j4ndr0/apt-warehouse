@@ -22,7 +22,7 @@ if ($name === '' || mb_strlen($name) > 255) {
 
 try {
     $stmt = $conn->prepare("
-        SELECT s.hbl, s.manifest, s.status,
+        SELECT s.hbl, s.manifest, s.status, s.origen,
                c.name AS recipient, c.city AS municipality, c.state AS province
         FROM shipments s
         LEFT JOIN clients c ON c.ci = s.ci
@@ -42,6 +42,7 @@ try {
         if ($status === 'warehouse') $entered++;
         $shipments[] = [
             'code' => (string) $row['hbl'],
+            'origin' => (int) ($row['origen'] ?? 0),
             'recipient' => (string) ($row['recipient'] ?? ''),
             'municipality' => (string) ($row['municipality'] ?? ''),
             'province' => (string) ($row['province'] ?? ''),

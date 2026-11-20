@@ -15,6 +15,9 @@ Sistema web de gestión de almacén y logística desarrollado en PHP. La aplicac
   - Consulta y detalle de envíos.
   - Edición de información de envíos y clientes.
 - 📦 **Gestión de almacén**
+  - Control de entradas mediante escáner QR.
+  - Consulta de manifiestos del sistema y carga alternativa mediante CSV.
+  - Registro de escaneos online y almacenamiento local para sincronización posterior.
   - Consulta de envíos almacenados.
   - Registro de entradas y salidas.
   - Consulta de movimientos y detalles.
@@ -22,6 +25,13 @@ Sistema web de gestión de almacén y logística desarrollado en PHP. La aplicac
   - Administración de rutas.
   - Gestión de entregas.
   - Administración de choferes y vehículos.
+- 📱 **Control QR (PWA)**
+  - Aplicación instalable para dispositivos móviles mediante Chrome cuando se cumplen los requisitos de instalación.
+  - Lector Bluetooth HID en modo teclado: procesa con Enter o tras 400 ms sin nuevas teclas.
+  - Consulta y selección de manifiestos existentes en apt-warehouse.
+  - Escaneo sin conexión con almacenamiento local IndexedDB y sincronización posterior.
+  - Validación definitiva en el servidor: el estado del envío en la base de datos es la fuente de verdad.
+  - Para envíos del origen **6**, normaliza códigos de 12 caracteres con formato `ALB` + 9 dígitos: elimina los cuatro dígitos posteriores a `ALB` y conserva los últimos cinco. Ejemplo: `ALB123456789` → `ALB56789`. La regla solo se aplica a registros del origen 6; los demás orígenes y las cargas CSV no se transforman.
 - 📄 **Manifiestos y documentos**
   - Carga de manifiestos mediante archivo.
   - Plantilla CSV incluida en `resources/files/upload_template.csv`.
@@ -43,6 +53,7 @@ apt-warehouse/
 ├── pdf/                    # Exportación de documentos PDF
 ├── resources/              # CSS, JavaScript, imágenes, fuentes y archivos auxiliares
 ├── search/                 # Búsqueda y consulta de clientes y envíos
+├── scanner/                # PWA de Control QR, lector HID y sincronización offline
 ├── settings/               # Configuración, manifiestos, choferes y vehículos
 ├── visitors/               # Gestión relacionada con visitantes
 ├── warehouse/              # Operaciones y consultas del almacén
@@ -106,6 +117,39 @@ http://localhost:8000/login.php
 ```
 
 Para un entorno real, utiliza un servidor web configurado con HTTPS y una configuración de producción adecuada.
+
+
+## Control QR y PWA
+
+El módulo está disponible en `/scanner/` para usuarios autenticados. Permite seleccionar un manifiesto existente desde la base de datos o importar un archivo CSV.
+
+### Uso del lector
+
+- Conecta el lector Bluetooth configurado como teclado HID.
+- Selecciona y carga el manifiesto que vas a procesar.
+- El escáner acepta códigos terminados en Enter. Si el lector no envía Enter, el sistema detecta el fin de la lectura tras 400 ms de inactividad.
+- Los registros se guardan localmente en IndexedDB y pueden sincronizarse cuando vuelve la conexión.
+- La sincronización valida cada HBL en el servidor y actualiza a estado `warehouse` solo los envíos que estén en `at_customs`. Los duplicados y códigos no encontrados se informan sin repetir la transición de estado.
+
+### Normalización específica del origen 6
+
+Al cargar un manifiesto del sistema, la API incluye el campo `origen` de cada envío. Si un código escaneado no coincide directamente, el módulo puede aplicar la transformación exclusiva del origen `6`:
+
+```text
+Código leído:       ALB123456789
+Código normalizado: ALB56789
+```
+
+La regla requiere el patrón `ALB` seguido de nueve dígitos. Conserva los tres caracteres iniciales y los últimos cinco caracteres del código original, eliminando los cuatro caracteres intermedios. La coincidencia exacta tiene prioridad. Los demás orígenes y los manifiestos CSV mantienen el código original.
+
+Los manifiestos del sistema que ya estaban guardados localmente antes de que se añadiera el campo de origen deben volver a seleccionarse y cargarse para actualizar sus datos.
+
+### Instalación y funcionamiento offline
+
+- Sirve la aplicación mediante **HTTPS** para que Chrome pueda ofrecer la instalación de la PWA (excepto entornos locales de desarrollo).
+- Abre `/scanner/` en Chrome. Si no aparece la opción de instalación, revisa **DevTools → Application → Manifest → Installability**.
+- La primera carga del manifiesto requiere conexión y una sesión autenticada. Una vez cargado, los escaneos se almacenan localmente y esperan a que haya conexión para sincronizarse.
+- La PWA utiliza un service worker para almacenar recursos de la interfaz; el funcionamiento offline no sustituye la autenticación ni la validación del servidor al sincronizar.
 
 ## Seguridad
 

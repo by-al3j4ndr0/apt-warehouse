@@ -39,6 +39,40 @@ function parseCsv(text){
  if(!items.size)throw new Error("No se encontraron códigos válidos en el CSV.");
  return [...items.values()];
 }
+async function loadSystemManifestList(){
+ const select=$("systemManifestSelect");
+ select.replaceChildren();
+ const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Cargando manifiestos…";select.append(placeholder);
+ try{
+  const response=await fetch("../api/scanner/manifests.php",{credentials:"same-origin",headers:{"Accept":"application/json"}});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"Error HTTP "+response.status);
+  select.replaceChildren();
+  const first=document.createElement("option");first.value="";first.textContent=data.manifests.length?"Selecciona un manifiesto":"No hay manifiestos disponibles";select.append(first);
+  data.manifests.forEach(item=>{
+   const option=document.createElement("option");option.value=item.manifest;
+   option.textContent=item.manifest+" · "+item.pending+" pendientes / "+item.entered+" recibidos";select.append(option);
+  });
+  $("systemManifestStatus").textContent=data.manifests.length?data.manifests.length+" manifiestos disponibles.":"No hay manifiestos con envíos pendientes o recibidos en almacén.";
+ }catch(error){
+  select.replaceChildren();const option=document.createElement("option");option.value="";option.textContent="No se pudo cargar la lista";select.append(option);
+  $("systemManifestStatus").textContent="No se pudo consultar el sistema: "+error.message;
+ }
+}
+async function loadSelectedSystemManifest(){
+ const name=$("systemManifestSelect").value;if(!name){$("systemManifestStatus").textContent="Selecciona un manifiesto primero.";return;}
+ $("loadSystemManifest").disabled=true;$("systemManifestStatus").textContent="Cargando envíos del manifiesto…";
+ try{
+  const url="../api/scanner/manifest.php?manifest="+encodeURIComponent(name);
+  const response=await fetch(url,{credentials:"same-origin",headers:{"Accept":"application/json"}});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"Error HTTP "+response.status);
+  if(!data.shipments||!data.shipments.length)throw new Error("El manifiesto no contiene envíos disponibles para control QR.");
+  await saveManifest(name,data.shipments,"Manifiesto del sistema");
+  $("manifestName").value=name;$("manifestName").readOnly=true;
+  $("result").className="result neutral";$("result").textContent="Manifiesto del sistema cargado. Puedes comenzar a escanear.";
+  $("systemManifestStatus").textContent="Cargados "+data.total+" envíos: "+data.pending+" pendientes y "+data.entered+" ya recibidos.";
+ }catch(error){$("systemManifestStatus").textContent="No se pudo cargar el manifiesto: "+error.message;}
+ finally{$("loadSystemManifest").disabled=false;}
+}
 async function loadManifest(name){
  const saved=await requestResult(store("manifests").get(name));if(!saved)return false;
  manifest=name;rows=saved.rows;$("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
@@ -104,11 +138,11 @@ async function init(){
  });
  $("scanButton").addEventListener("click",()=>scan($("scanInput").value));
  $("scanInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();scan($("scanInput").value);}});
- $("exportButton").addEventListener("click",exportCsv);$("syncButton").addEventListener("click",sync);
+ $("exportButton").addEventListener("click",exportCsv);$("syncButton").addEventListener("click",sync);\n $("loadSystemManifest").addEventListener("click",loadSelectedSystemManifest);
  $("manifestName").addEventListener("change",async()=>{const name=$("manifestName").value.trim();if(name)await loadManifest(name);});
  const connection=()=>{$("connection").textContent=navigator.onLine?"En línea":"Sin conexión";$("connection").style.background=navigator.onLine?"#ffffff20":"#8a5a00";};
  window.addEventListener("online",connection);window.addEventListener("offline",connection);connection();
- const names=await requestResult(store("manifests").getAllKeys());if(names.length)await loadManifest(names[names.length-1]);
+ await loadSystemManifestList();\n const names=await requestResult(store("manifests").getAllKeys());if(names.length)await loadManifest(names[names.length-1]);
  if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
 }
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>{$("manifestStatus").textContent="Error al iniciar almacenamiento local: "+e.message;}));

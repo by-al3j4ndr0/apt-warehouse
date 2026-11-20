@@ -204,7 +204,7 @@ $csrf = csrfToken();
             if ($('shipmentCode').value.trim()) registerEntry($('shipmentCode').value);
         }, 400);
     });
-    $('pendingSearch').addEventListener('keyup', () => {
+    $('pendingSearch').addEventListener('input', () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => loadPending(true), 300);
     });

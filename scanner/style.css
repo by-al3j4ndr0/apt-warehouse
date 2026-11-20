@@ -2,3 +2,8 @@
 #systemManifestSelect{flex:1;min-width:0;border:1px solid #cbd6de;border-radius:9px;padding:12px;background:#fff;font:inherit;color:#172b3a}
 .manifest-divider{display:flex;align-items:center;gap:12px;margin:18px 0 4px;color:#71818c;font-size:12px}
 .manifest-divider:before,.manifest-divider:after{content:"";height:1px;background:#e0e7ec;flex:1}
+
+.topbar-actions{display:flex;align-items:center;gap:10px}
+#installButton{padding:8px 12px;font-size:12px;background:#fff;color:#123b5d}
+#installButton[hidden]{display:none}
+@media(max-width:600px){.topbar-actions{gap:6px}#installButton{padding:7px 9px;font-size:11px}}

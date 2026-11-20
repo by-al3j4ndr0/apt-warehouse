@@ -75,6 +75,12 @@ async function loadSelectedSystemManifest(){
 }
 async function loadManifest(name){
  const saved=await requestResult(store("manifests").get(name));if(!saved)return false;
+ if(saved.source==="system"&&saved.rows.some(item=>typeof item.origin==="undefined")){
+  manifest=name;rows=saved.rows;manifestSource=saved.source;
+  $("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
+  $("manifestStatus").textContent="Este manifiesto guardado es anterior a la identificación del origen. Vuelve a seleccionarlo y pulsa Cargar para actualizarlo.";
+  enableScanner(false);return false;
+ }
  manifest=name;rows=saved.rows;manifestSource=saved.source||"csv";$("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
  $("manifestStatus").textContent="Listado activo: "+name+" ("+rows.length+" códigos).";enableScanner(true);await render();return true;
 }
@@ -100,16 +106,21 @@ async function render(){
  });
 }
 async function scan(code){
- code=String(code||"").trim();if(!code||processing||!manifest)return;processing=true;$("scanInput").value="";
+ const scannedCode=String(code||"").trim();if(!scannedCode||processing||!manifest)return;processing=true;$("scanInput").value="";
  try{
-  const match=rows.find(item=>item.code===code),all=await requestResult(store("scans").getAll()),already=all.some(s=>s.manifest===manifest&&s.code===code&&s.status!=="NOT_FOUND");
+  // Para el origen 6, algunos lectores entregan ALB + 9 dígitos; el HBL registrado omite los 4 dígitos centrales.
+  const normalizedAlb=/^ALB\d{9}$/i.test(scannedCode)?scannedCode.slice(0,3)+scannedCode.slice(7):scannedCode;
+  const exactMatch=rows.find(item=>item.code===scannedCode);
+  const match=exactMatch||rows.find(item=>Number(item.origin)===6&&item.code===normalizedAlb);
+  const codeToRecord=match?match.code:scannedCode;
+  const all=await requestResult(store("scans").getAll()),already=all.some(s=>s.manifest===manifest&&s.code===codeToRecord&&s.status!=="NOT_FOUND");
   const status=!match?"NOT_FOUND":already?"DUPLICATE":"FOUND";
-  const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2),manifest,source:manifestSource,code,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
+  const record={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2),manifest,source:manifestSource,code:codeToRecord,scannedCode,status,recipient:match?.recipient||"",municipality:match?.municipality||"",province:match?.province||"",timestamp:new Date().toISOString(),synced:false};
   await requestResult(store("scans","readwrite").put(record));
   const result=$("result");result.className="result "+(status==="FOUND"?"found":status==="DUPLICATE"?"duplicate":"missing");
   result.textContent=status==="FOUND"?"✓ CÓDIGO ENCONTRADO":status==="DUPLICATE"?"⚠ ESTE CÓDIGO YA FUE ESCANEADO":"✕ CÓDIGO NO INCLUIDO EN EL LISTADO";
   const info=$("shipmentInfo");info.hidden=!match;info.replaceChildren();
-  if(match)[["Destinatario",match.recipient],["Municipio",match.municipality],["Provincia",match.province],["Código",match.code]].forEach(pair=>{const d=document.createElement("div"),sp=document.createElement("span"),b=document.createElement("b");sp.textContent=pair[0];b.textContent=pair[1]||"—";d.append(sp,b);info.append(d);});
+  if(match)[["Destinatario",match.recipient],["Municipio",match.municipality],["Provincia",match.province],["Código HBL",match.code],...(codeToRecord!==scannedCode?[["Código leído",scannedCode]]:[])].forEach(pair=>{const d=document.createElement("div"),sp=document.createElement("span"),b=document.createElement("b");sp.textContent=pair[0];b.textContent=pair[1]||"—";d.append(sp,b);info.append(d);});
   await render();
  }finally{processing=false;$("scanInput").focus();}
 }

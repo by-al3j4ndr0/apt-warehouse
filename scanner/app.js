@@ -103,7 +103,7 @@ async function scan(code){
  const scannedCode=String(code||"").trim();if(!scannedCode||processing||!manifest)return;processing=true;$("scanInput").value="";
  try{
   // Para el origen 6, algunos lectores entregan ALB + 9 dígitos; el HBL registrado omite los 4 dígitos centrales.
-  const normalizedAlb=/^ALB\\d{9}$/i.test(scannedCode)?scannedCode.slice(0,3)+scannedCode.slice(7):scannedCode;
+  const normalizedAlb=/^ALB\d{9}$/i.test(scannedCode)?scannedCode.slice(0,3)+scannedCode.slice(7):scannedCode;
   const exactMatch=rows.find(item=>item.code===scannedCode);
   const match=exactMatch||rows.find(item=>Number(item.origin)===6&&item.code===normalizedAlb);
   const codeToRecord=match?match.code:scannedCode;

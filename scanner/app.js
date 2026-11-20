@@ -133,16 +133,18 @@ async function sync(){
 }
 async function init(){
  db=await openDb();
- $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");
+ $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;
   try{await saveManifest(name,parseCsv(await file.text()),file.name);$("result").className="result neutral";$("result").textContent="Listado listo. Puedes comenzar a escanear.";}catch(err){$("manifestStatus").textContent=err.message;}e.target.value="";
  });
  $("scanButton").addEventListener("click",()=>scan($("scanInput").value));
  $("scanInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();scan($("scanInput").value);}});
- $("exportButton").addEventListener("click",exportCsv);$("syncButton").addEventListener("click",sync);\n $("loadSystemManifest").addEventListener("click",loadSelectedSystemManifest);
+ $("exportButton").addEventListener("click",exportCsv);$("syncButton").addEventListener("click",sync);
+ $("loadSystemManifest").addEventListener("click",loadSelectedSystemManifest);
  $("manifestName").addEventListener("change",async()=>{const name=$("manifestName").value.trim();if(name)await loadManifest(name);});
  const connection=()=>{$("connection").textContent=navigator.onLine?"En línea":"Sin conexión";$("connection").style.background=navigator.onLine?"#ffffff20":"#8a5a00";};
  window.addEventListener("online",connection);window.addEventListener("offline",connection);connection();
- await loadSystemManifestList();\n const names=await requestResult(store("manifests").getAllKeys());if(names.length)await loadManifest(names[names.length-1]);
+ await loadSystemManifestList();
+ const names=await requestResult(store("manifests").getAllKeys());if(names.length)await loadManifest(names[names.length-1]);
  if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
 }
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>{$("manifestStatus").textContent="Error al iniciar almacenamiento local: "+e.message;}));

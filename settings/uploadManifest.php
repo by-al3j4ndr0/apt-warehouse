@@ -38,6 +38,14 @@ requireLogin(true);
         </div>
         
         <div class="content">
+            <div class="mb-3">
+                <label for="manifestType" class="form-label"><strong>Tipo de manifiesto</strong></label>
+                <select class="form-select" id="manifestType">
+                    <option value="regular" selected>Manifiesto regular</option>
+                    <option value="aerovaradero">Manifiesto de Aerovaradero</option>
+                </select>
+                <small class="form-text text-muted">Selecciona el formato correspondiente al archivo que vas a cargar.</small>
+            </div>
             <div class="drop-zone" id="dropZone">
                 <div class="drop-zone-icon">📁</div>
                 <div class="drop-zone-text">Arrastra y suelta tu archivo aquí</div>

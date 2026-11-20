@@ -1,5 +1,6 @@
 const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
+        const manifestType = document.getElementById('manifestType');
         const progressContainer = document.getElementById('progress-container');
         const progressBar = document.getElementById('progressBar');
         const resultDiv = document.getElementById('result');
@@ -76,6 +77,7 @@ const dropZone = document.getElementById('dropZone');
         function uploadFile(file) {
             const formData = new FormData();
             formData.append('archivo', file);
+            formData.append('tipo_manifiesto', manifestType.value);
             
             const xhr = new XMLHttpRequest();
             

@@ -21,7 +21,7 @@ $csrf = csrfToken();
 <div class="manifest-status" id="manifestStatus">No hay ningún listado cargado.</div></section>
 <section class="panel scanner-panel"><div class="section-head"><div><h2>Escanear mercancía</h2><p>Conecta el lector Bluetooth en modo teclado.</p></div><span class="scan-icon">▦</span></div>
 <label class="field-label" for="scanInput">Código QR</label><div class="scan-row"><input id="scanInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Esperando escaneo…" disabled><button id="scanButton" type="button" disabled>Verificar</button></div>
-<div id="result" class="result neutral" role="status" aria-live="polite">Carga un CSV para habilitar el escaneo.</div><div id="shipmentInfo" class="shipment-info" hidden></div>
+<div id="result" class="result neutral" role="status" aria-live="polite">Selecciona un manifiesto o carga un CSV para habilitar el escaneo.</div><div id="shipmentInfo" class="shipment-info" hidden></div>
 <p class="hint">El lector debe enviar Enter al finalizar cada lectura. También puedes escribir un código y pulsar Verificar.</p></section>
 <section class="stats-grid" aria-label="Resumen">
 <div class="stat"><b id="countFound">0</b><span>Encontrados</span></div><div class="stat"><b id="countMissing">0</b><span>No encontrados</span></div><div class="stat"><b id="countDuplicate">0</b><span>Duplicados</span></div><div class="stat"><b id="countPending">0</b><span>Pendientes</span></div></section>

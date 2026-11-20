@@ -75,6 +75,12 @@ async function loadSelectedSystemManifest(){
 }
 async function loadManifest(name){
  const saved=await requestResult(store("manifests").get(name));if(!saved)return false;
+ if(saved.source==="system"&&saved.rows.some(item=>typeof item.origin==="undefined")){
+  manifest=name;rows=saved.rows;manifestSource=saved.source;
+  $("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
+  $("manifestStatus").textContent="Este manifiesto guardado es anterior a la identificación del origen. Vuelve a seleccionarlo y pulsa Cargar para actualizarlo.";
+  enableScanner(false);return false;
+ }
  manifest=name;rows=saved.rows;manifestSource=saved.source||"csv";$("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
  $("manifestStatus").textContent="Listado activo: "+name+" ("+rows.length+" códigos).";enableScanner(true);await render();return true;
 }

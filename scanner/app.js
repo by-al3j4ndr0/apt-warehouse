@@ -93,8 +93,8 @@ async function sync(){
  try{
   const response=await fetch("../api/scanner/sync.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","Accept":"application/json","X-CSRF-Token":document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({records:pending})});
   const data=await response.json();if(!response.ok)throw new Error(data.error||"Error HTTP "+response.status);
-  const tx=db.transaction("scans","readwrite"),os=tx.objectStore("scans");pending.forEach(s=>{s.synced=true;os.put(s);});
-  tx.oncomplete=()=>$("syncStatus").textContent="Sincronización completada. Nuevos registros: "+data.saved+".";
+  const tx=db.transaction("scans","readwrite"),os=tx.objectStore("scans");pending.forEach(s=>{s.synced=true;if(data.results&&data.results[s.id])s.status=data.results[s.id];os.put(s);});
+  tx.oncomplete=async()=>{$("syncStatus").textContent="Sincronización completada. Entradas: "+(data.entered||0)+" · Duplicados: "+(data.duplicates||0)+" · No válidos: "+(data.not_found||0)+".";await render();};
  }catch(error){$("syncStatus").textContent="No se pudo sincronizar: "+error.message+" (se conservaron localmente).";}
 }
 async function init(){

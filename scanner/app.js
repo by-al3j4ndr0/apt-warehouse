@@ -88,7 +88,7 @@ async function getScans(){const all=await requestResult(store("scans").getAll())
 async function render(){
  const scans=await getScans(),seen=new Set(scans.filter(s=>s.status!=="NOT_FOUND").map(s=>s.code));
  const found=scans.filter(s=>s.status==="FOUND").length,missing=scans.filter(s=>s.status==="NOT_FOUND").length,duplicates=scans.filter(s=>s.status==="DUPLICATE").length;
- $("countFound").textContent=found;$("countMissing").textContent=missing;$("countDuplicate").textContent=duplicates;$("countPending").textContent=Math.max(0,rows.length-seen.size);
+ $("countFound").textContent=found;$("countMissing").textContent=missing;$("countDuplicate").textContent=duplicates;$("countPending").textContent=rows.filter(item=>item.status!=="warehouse"&&!seen.has(item.code)).length;
  $("recordCount").textContent=scans.length+" escaneos registrados";
  const body=$("recordsBody");body.replaceChildren();
  if(!scans.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=4;td.className="empty";td.textContent="Todavía no hay escaneos.";tr.append(td);body.append(tr);return;}
@@ -133,7 +133,7 @@ async function sync(){
 }
 async function init(){
  db=await openDb();
- $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;$("manifestName").readOnly=false;
+ $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;
   try{await saveManifest(name,parseCsv(await file.text()),file.name,"csv");$("result").className="result neutral";$("result").textContent="Listado listo. Puedes comenzar a escanear.";}catch(err){$("manifestStatus").textContent=err.message;}e.target.value="";
  });
  $("scanButton").addEventListener("click",()=>scan($("scanInput").value));

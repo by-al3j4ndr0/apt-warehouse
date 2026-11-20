@@ -78,9 +78,9 @@ async function loadManifest(name){
  manifest=name;rows=saved.rows;manifestSource=saved.source||"csv";$("manifestName").value=name;$("fileName").textContent=saved.fileName+" · "+rows.length+" códigos";
  $("manifestStatus").textContent="Listado activo: "+name+" ("+rows.length+" códigos).";enableScanner(true);await render();return true;
 }
-async function saveManifest(name,data,fileName){
- await requestResult(store("manifests","readwrite").put({name,rows:data,fileName,updatedAt:new Date().toISOString()}));
- manifest=name;rows=data;$("manifestStatus").textContent="Listado cargado: "+name+" · "+rows.length+" códigos.";
+async function saveManifest(name,data,fileName,source="csv"){
+ await requestResult(store("manifests","readwrite").put({name,rows:data,fileName,source,updatedAt:new Date().toISOString()}));
+ manifest=name;rows=data;manifestSource=source;$("manifestStatus").textContent="Listado cargado: "+name+" · "+rows.length+" códigos.";
  $("fileName").textContent=fileName+" · "+rows.length+" códigos";enableScanner(true);await render();
 }
 function enableScanner(enabled){$("scanInput").disabled=!enabled;$("scanButton").disabled=!enabled;if(enabled)$("scanInput").focus();}

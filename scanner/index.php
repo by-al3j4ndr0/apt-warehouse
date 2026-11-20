@@ -11,8 +11,12 @@ $csrf = csrfToken();
 </head><body>
 <header class="topbar"><div><strong>APT Warehouse</strong><span>Control de mercancías</span></div><span id="connection" class="pill">Comprobando conexión…</span></header>
 <main>
-<section class="panel"><div class="section-head"><div><h1>Verificación QR</h1><p>Importa el listado CSV y comienza a escanear.</p></div></div>
-<label class="field-label" for="manifestName">Nombre de la sesión / manifiesto</label><input id="manifestName" type="text" placeholder="Ej. Manifiesto 20-11-2026" maxlength="120">
+<section class="panel"><div class="section-head"><div><h1>Verificación QR</h1><p>Selecciona un manifiesto del sistema o importa un CSV.</p></div></div>
+<label class="field-label" for="systemManifestSelect">Manifiestos disponibles en apt-warehouse</label>
+<div class="scan-row"><select id="systemManifestSelect"><option value="">Cargando manifiestos…</option></select><button id="loadSystemManifest" type="button">Cargar</button></div>
+<p class="hint" id="systemManifestStatus">Se mostrarán manifiestos con mercancía pendiente o ya recibida en almacén.</p>
+<div class="manifest-divider">O utiliza un archivo CSV</div>
+<label class="field-label" for="manifestName">Nombre de la sesión / manifiesto CSV</label><input id="manifestName" type="text" placeholder="Ej. Manifiesto 20-11-2026" maxlength="255">
 <label class="file-picker" for="csvFile"><span>＋</span><span><b>Seleccionar archivo CSV</b><small id="fileName">Código, destinatario, municipio y provincia</small></span></label><input id="csvFile" type="file" accept=".csv,text/csv" hidden>
 <div class="manifest-status" id="manifestStatus">No hay ningún listado cargado.</div></section>
 <section class="panel scanner-panel"><div class="section-head"><div><h2>Escanear mercancía</h2><p>Conecta el lector Bluetooth en modo teclado.</p></div><span class="scan-icon">▦</span></div>

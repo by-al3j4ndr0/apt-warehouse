@@ -83,10 +83,16 @@ try {
         throw new Exception('Error al guardar el archivo en el servidor');
     }
     
-    // Procesar según extensión
+    // Seleccionar el formato de manifiesto. El formato regular sigue siendo el predeterminado.
+    $manifestType = $_POST['tipo_manifiesto'] ?? 'regular';
+    if (!in_array($manifestType, ['regular', 'aerovaradero'], true)) {
+        throw new Exception('Tipo de manifiesto no válido.', 400);
+    }
+
+    // Ambos formatos utilizan el mismo proceso de validación e inserción.
     $stats = [];
     if ($extension == 'csv' || $extension == 'txt') {
-        $stats = procesarCSV($targetFile, $errorLog, $warningLog);
+        $stats = procesarCSV($targetFile, $errorLog, $warningLog, $manifestType);
     } else {
         throw new Exception('Formato de archivo no soportado: ' . $extension);
     }
@@ -204,7 +210,7 @@ function convertirUTF8($texto) {
     return trim($texto);
 }
 
-function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
+function procesarCSV($archivo, &$errorLog = [], &$warningLog = [], $manifestType = 'regular') {
     global $conn;
 
     // Configuración
@@ -259,6 +265,9 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
         // Encontrar índices de columnas
         $columnIndex = [];
         foreach ($columnMap as $field => $aliases) {
+            if ($manifestType === 'aerovaradero' && in_array($field, ['city', 'state'], true)) {
+                continue;
+            }
             $found = false;
             foreach ($headers as $index => $header) {
                 if (in_array(strtolower(trim($header)), array_map('strtolower', $aliases))) {
@@ -304,6 +313,24 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = []) {
             $data = [];
             foreach ($columnIndex as $field => $index) {
                 $data[$field] = isset($row[$index]) ? trim($row[$index]) : '';
+            }
+
+            // Aerovaradero entrega municipio y provincia al final de la dirección:
+            // "calle, número, ... , municipio, provincia". Se conservan las partes intermedias.
+            if ($manifestType === 'aerovaradero') {
+                $addressParts = array_map('trim', explode(',', $data['address'] ?? ''));
+                $addressParts = array_values(array_filter($addressParts, static function ($part) {
+                    return $part !== '';
+                }));
+
+                if (count($addressParts) < 3) {
+                    $errorLog[] = "Fila $rowNumber: La dirección de Aerovaradero debe incluir dirección, municipio y provincia separados por comas.";
+                    continue;
+                }
+
+                $data['state'] = array_pop($addressParts);
+                $data['city'] = array_pop($addressParts);
+                $data['address'] = implode(', ', $addressParts);
             }
             
             // === VALIDACIÓN CORREGIDA ===

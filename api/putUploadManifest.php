@@ -284,7 +284,7 @@ function procesarCSV($archivo, &$errorLog = [], &$warningLog = [], $manifestType
         $conn->begin_transaction();
         
         // Preparar sentencias con mejor manejo
-        $stmt_shipment = $conn->prepare("INSERT INTO `shipments` (`hbl`, `origen`, `ci`, `weight`, `description`, `tariff`, `manifest`, `status`) VALUES (?, ?, ?, ?, ?, ?, ?, 'warehouse')");
+        $stmt_shipment = $conn->prepare("INSERT INTO `shipments` (`hbl`, `origen`, `ci`, `weight`, `description`, `tariff`, `manifest`, `status`) VALUES (?, ?, ?, ?, ?, ?, ?, 'at_customs')");
         if (!$stmt_shipment) {
             throw new Exception("Error preparando statement shipments: " . $conn->error);
         }

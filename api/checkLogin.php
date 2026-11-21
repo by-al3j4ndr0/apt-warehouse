@@ -48,7 +48,11 @@ if ($stmt->num_rows === 1) {
 
 $stmt->close();
 
-if ($valid && ((int) $active !== 1 || !in_array([(int) $staff, (int) $superuser], [[0, 0], [1, 0], [1, 1]], true))) {\n    $valid = false;\n}\n\nif ($valid && password_get_info($db_password)['algo'] === 0) {
+if ($valid && ((int) $active !== 1 || !in_array([(int) $staff, (int) $superuser], [[0, 0], [1, 0], [1, 1]], true))) {
+    $valid = false;
+}
+
+if ($valid && password_get_info($db_password)['algo'] === 0) {
     // Upgrade legacy credentials after a successful login.
     $newHash = password_hash($password, PASSWORD_DEFAULT);
     $upgradeStmt = $conn->prepare("UPDATE `auth_user` SET `password` = ? WHERE `username` = ?");
@@ -67,7 +71,9 @@ session_regenerate_id(true);
 $_SESSION['username'] = $username;
 $_SESSION['first_name'] = $firstname;
 $_SESSION['last_name'] = $lastname;
-$_SESSION['is_active'] = (int) $active;\n$_SESSION['is_staff'] = (int) $staff;\n$_SESSION['is_superuser'] = (int) $superuser;
+$_SESSION['is_active'] = (int) $active;
+$_SESSION['is_staff'] = (int) $staff;
+$_SESSION['is_superuser'] = (int) $superuser;
 $_SESSION['login_time_stamp'] = time();
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 

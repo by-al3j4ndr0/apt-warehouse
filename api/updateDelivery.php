@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db_connect.php';
-requireLogin(true);
+requireAdmin();
 requireCsrf();
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") { http_response_code(405); exit('Method Not Allowed'); }

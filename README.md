@@ -270,3 +270,21 @@ El sistema utiliza las columnas `is_staff` y `is_superuser` de `auth_user` para 
 Las cuentas deben tener `is_active = 1` para iniciar sesión. La combinación `is_staff = 0` y `is_superuser = 1` no está permitida.
 
 La autorización se aplica en el servidor mediante los helpers de `api/auth.php`: `requireLogin(true)` para páginas de personal, `requireAdmin()` / `requireApiAdmin()` para operaciones administrativas y `requireVisitor()` / `requireApiVisitor()` para la vista limitada por origen. Los escaneos y su sincronización permanecen disponibles para el personal autorizado, ya que forman parte del flujo de entrada a almacén.
+
+
+## Gestión de usuarios
+
+El menú **Ajustes → Gestionar Usuarios** está disponible únicamente para administradores. Desde este módulo se pueden crear y editar cuentas, buscar usuarios por nombre de usuario, nombre, apellidos o correo, y desactivar cuentas sin borrar su historial.
+
+Perfiles disponibles:
+- **Visitante:** `is_staff = 0`, `is_superuser = 0`.
+- **Operador / consulta:** `is_staff = 1`, `is_superuser = 0`.
+- **Administrador:** `is_staff = 1`, `is_superuser = 1`.
+
+Cada cuenta requiere un origen válido porque `auth_user.origen` es obligatorio en la base de datos. Las contraseñas nuevas se almacenan con `password_hash()`; el inicio de sesión verifica hashes PHP y conserva la compatibilidad con el formato PBKDF2 heredado, actualizándolo después de un inicio de sesión correcto.
+
+La API de administración valida la sesión de administrador y el token CSRF, utiliza consultas preparadas y aplica las siguientes protecciones:
+- No permite modificar ni desactivar la cuenta del administrador que inició sesión.
+- No permite desactivar al último administrador activo ni quitarle el perfil de administrador.
+- La acción **Desactivar** establece `is_active = 0`; no elimina físicamente el registro.
+- No muestra hashes ni contraseñas almacenadas. Al editar, la contraseña es opcional y solo cambia si se introduce una nueva.

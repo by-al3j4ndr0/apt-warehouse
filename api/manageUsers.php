@@ -93,6 +93,7 @@ try {
             userResponse(false, 'Identificador de usuario no válido.', 422);
         }
 
+        $conn->begin_transaction();
         $stmt = $conn->prepare(
             "SELECT `username`, `is_active`, `is_staff`, `is_superuser`
              FROM `auth_user` WHERE `id` = ? FOR UPDATE"
@@ -103,9 +104,11 @@ try {
         $stmt->close();
 
         if (!$target) {
+            $conn->rollback();
             userResponse(false, 'El usuario no existe.', 404);
         }
         if (hash_equals($actorUsername, (string) $target['username'])) {
+            $conn->rollback();
             userResponse(false, 'No puedes modificar tu propia cuenta desde este módulo.', 403);
         }
 
@@ -132,7 +135,6 @@ try {
             && (int) $target['is_superuser'] === 1;
         $willRemainActiveAdmin = (int) $target['is_active'] === 1 && $staff === 1 && $superuser === 1;
 
-        $conn->begin_transaction();
         if ($wasActiveAdmin && !$willRemainActiveAdmin && activeAdminCount($conn) <= 1) {
             $conn->rollback();
             userResponse(false, 'No se puede retirar el perfil de administrador al último administrador activo.', 409);

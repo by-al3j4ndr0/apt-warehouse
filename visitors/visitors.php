@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../api/auth.php';
-requireLogin(false);
+requireVisitor();
 
 ?>
 <!DOCTYPE html>

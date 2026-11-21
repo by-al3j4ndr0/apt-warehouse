@@ -41,7 +41,8 @@ function destroySession(): void {
 }
 
 function isSessionValid(): bool {
-    if (!isset($_SESSION['username'], $_SESSION['login_time_stamp'])) {
+    if (!isset($_SESSION['username'], $_SESSION['login_time_stamp'])
+        || (int) ($_SESSION['is_active'] ?? 0) !== 1) {
         return false;
     }
 
@@ -54,6 +55,57 @@ function isSessionValid(): bool {
 
     $_SESSION['last_activity'] = $now;
     return true;
+}
+
+function isVisitor(): bool {
+    return (int) ($_SESSION['is_staff'] ?? 0) === 0
+        && (int) ($_SESSION['is_superuser'] ?? 0) === 0;
+}
+
+function isReadOnlyStaff(): bool {
+    return (int) ($_SESSION['is_staff'] ?? 0) === 1
+        && (int) ($_SESSION['is_superuser'] ?? 0) === 0;
+}
+
+function isAdministrator(): bool {
+    return (int) ($_SESSION['is_staff'] ?? 0) === 1
+        && (int) ($_SESSION['is_superuser'] ?? 0) === 1;
+}
+
+function requireVisitor(): void {
+    requireLogin(false);
+    if (!isVisitor()) {
+        http_response_code(403);
+        exit('Forbidden');
+    }
+}
+
+function requireApiVisitor(): void {
+    requireApiLogin(false);
+    if (!isVisitor()) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'Forbidden']);
+        exit();
+    }
+}
+
+function requireAdmin(): void {
+    requireLogin(true);
+    if (!isAdministrator()) {
+        http_response_code(403);
+        exit('Forbidden');
+    }
+}
+
+function requireApiAdmin(): void {
+    requireApiLogin(true);
+    if (!isAdministrator()) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'Forbidden']);
+        exit();
+    }
 }
 
 function requireLogin(bool $staffOnly = false): void {

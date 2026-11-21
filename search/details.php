@@ -79,7 +79,9 @@ if (isset($_GET['ci'])) {
                 <h5><label class="">Dirección: <?php echo $client_address . ", " . $client_city . ", " . $client_state ?></label></h5>
             </div>
             <div class="row p-2">
+                <?php if (isAdministrator()): ?>
                 <a class="btn btn-dark" href="./editClient.php?ci=<?php echo urlencode($client_ci) ?>">Editar Cliente</a>
+                <?php endif; ?>
             </div>
             <div class="row p-2">
                 <a class="btn btn-warning" href="../search/clients.php">Atras</a>

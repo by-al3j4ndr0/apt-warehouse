@@ -223,6 +223,23 @@ Aplicación
 MySQL / MariaDB
 ```
 
+
+## Migración de usuarios
+
+Antes de habilitar la administración de cuentas, prepara la tabla `auth_user` ejecutando una sola vez:
+
+```text
+database/migrations/20261120_auth_user_keys.sql
+```
+
+La migración:
+- Comprueba que no existan IDs ni nombres de usuario duplicados y se detiene si encuentra alguno.
+- Convierte `auth_user.id` en clave primaria autoincremental.
+- Añade una restricción única a `auth_user.username`, respetando la intercalación de la columna.
+- No modifica ni elimina registros de usuarios.
+
+**Antes de ejecutarla:** realiza una copia de seguridad completa y prueba primero en una copia de la base de datos. La operación altera la estructura de la tabla y requiere permisos DDL. No se ejecuta automáticamente desde la aplicación. Después de aplicarla, verifica el resultado con `SHOW CREATE TABLE auth_user;` y `SHOW INDEX FROM auth_user;`.
+
 ## Estado del proyecto
 
 Este README documenta la estructura y funcionalidades identificadas en la rama `main`. La implementación y sus capacidades pueden evolucionar junto con el repositorio.
@@ -238,3 +255,18 @@ No se ha identificado un archivo de licencia en el repositorio. Antes de redistr
 3. Ejecuta las comprobaciones de sintaxis PHP.
 4. Verifica que no se incluyan credenciales, archivos `.env`, logs ni datos sensibles.
 5. Abre un pull request hacia `main` describiendo los cambios realizados.
+
+
+## Perfiles de acceso
+
+El sistema utiliza las columnas `is_staff` y `is_superuser` de `auth_user` para determinar tres perfiles:
+
+| Perfil | is_staff | is_superuser | Acceso |
+|---|---:|---:|---|
+| Visitante | 0 | 0 | Consulta de envíos limitada al origen asociado al usuario |
+| Operador de consulta | 1 | 0 | Consulta global de clientes, envíos, almacén y deliveries; uso de `inOutShipments` y del escáner. No puede modificar datos administrativos |
+| Administrador | 1 | 1 | Acceso completo, incluidas las operaciones de modificación y configuración |
+
+Las cuentas deben tener `is_active = 1` para iniciar sesión. La combinación `is_staff = 0` y `is_superuser = 1` no está permitida.
+
+La autorización se aplica en el servidor mediante los helpers de `api/auth.php`: `requireLogin(true)` para páginas de personal, `requireAdmin()` / `requireApiAdmin()` para operaciones administrativas y `requireVisitor()` / `requireApiVisitor()` para la vista limitada por origen. Los escaneos y su sincronización permanecen disponibles para el personal autorizado, ya que forman parte del flujo de entrada a almacén.

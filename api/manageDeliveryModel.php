@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/auth.php';
-requireLogin(true);
+requireAdmin();
 
 // Funciones
 function newDelivery() {

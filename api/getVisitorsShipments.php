@@ -1,6 +1,6 @@
 <?php
     require_once __DIR__ . '/auth.php';
-    requireApiLogin(false);
+    requireApiVisitor();
 
     // Configurar cabeceras
     header('Content-Type: application/json');

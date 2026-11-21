@@ -108,12 +108,14 @@ requireLogin(true);
 
             <button type="button" class="btn-clear" id="routes-clear">Limpiar</button>
 
+            <?php if (isAdministrator()): ?>
             <form method="get" action="./manageDelivery.php" style="margin:0;">
                 <input type="hidden" name="model" value="new_delivery">
                 <button type="submit" class="btn-add-route">
                     <i class="fa fa-plus"></i> Adicionar Ruta
                 </button>
             </form>
+            <?php endif; ?>
         </div>
 
         <div class="toolbar">
@@ -166,16 +168,19 @@ requireLogin(true);
                                 <td><?php echo (int) $delivery['total_shipments'] ?></td>
                                 <td>
                                     <div class="actions">
+                                        <?php if (isAdministrator()): ?>
                                         <a href="./manageDelivery.php?model=update_delivery&id=<?php echo (int) $delivery['id'] ?>"
                                            class="<?php echo $canEdit ? '' : 'disabled' ?>"
                                            title="Editar">
                                             <i class="fa fa-edit"></i>
                                         </a>
+                                        <?php endif; ?>
                                         <a target="_blank"
                                            href="../pdf/exportPdf.php?id=<?php echo (int) $delivery['id'] ?>"
                                            title="Imprimir">
                                             <i class="fa fa-print"></i>
                                         </a>
+                                        <?php if (isAdministrator()): ?>
                                         <?php if ($canDelete): ?>
                                             <form method="post" action="../api/deleteDelivery.php" style="display:inline" onsubmit="return confirm('¿Eliminar esta ruta?');">
                                                 <input type="hidden" name="id" value="<?php echo (int) $delivery['id'] ?>">
@@ -184,6 +189,7 @@ requireLogin(true);
                                             </form>
                                         <?php else: ?>
                                             <a class="disabled" title="Eliminar"><i class="fa fa-trash"></i></a>
+                                        <?php endif; ?>
                                         <?php endif; ?>
                                         <a href="../api/exportRouteInfo.php?id=<?php echo (int) $delivery['id'] ?>"
                                            title="Exportar">

@@ -37,6 +37,7 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="/scanner/">Control QR</a>
                     </li>
+                    <?php if (isAdministrator()): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link active dropdown-toggle" href="../index.php" id="navbarDropdownMenuLink" role="button" 
                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -48,6 +49,7 @@
                             <li><a class="dropdown-item" href="../settings/logs.php">Ver Logs</a></li>
                         </ul>
                     </li>
+                    <?php endif; ?>
                 </ul>
                 <ul class="navbar-nav m-auto mt-2 mt-lg-0">
                 </ul>

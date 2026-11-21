@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/auth.php';
-requireLogin(true);
+requireAdmin();
 header('Content-Type: application/json');
 
 // Ajusta según tu conexión existente (mysqli)

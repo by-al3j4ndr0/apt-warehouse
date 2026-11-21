@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db_connect.php';
-requireLogin(true);
+requireAdmin();
 requireCsrf();
 
 // Configuración

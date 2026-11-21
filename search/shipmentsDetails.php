@@ -104,7 +104,9 @@ if (isset($_GET['hbl'])) {
                 </div>
             </div>
             <div class="row p-2">
+                <?php if (isAdministrator()): ?>
                 <a class="btn btn-dark" href="./editShipment.php?hbl=<?php echo urlencode($shipment_hbl) ?>">Editar Envio</a>
+                <?php endif; ?>
             </div>
             <div class="row p-2">
                 <a class="btn btn-warning" href="../search/shipments.php">Atras</a>

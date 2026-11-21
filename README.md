@@ -223,6 +223,23 @@ Aplicación
 MySQL / MariaDB
 ```
 
+
+## Migración de usuarios
+
+Antes de habilitar la administración de cuentas, prepara la tabla `auth_user` ejecutando una sola vez:
+
+```text
+database/migrations/20261120_auth_user_keys.sql
+```
+
+La migración:
+- Comprueba que no existan IDs ni nombres de usuario duplicados y se detiene si encuentra alguno.
+- Convierte `auth_user.id` en clave primaria autoincremental.
+- Añade una restricción única a `auth_user.username`, respetando la intercalación de la columna.
+- No modifica ni elimina registros de usuarios.
+
+**Antes de ejecutarla:** realiza una copia de seguridad completa y prueba primero en una copia de la base de datos. La operación altera la estructura de la tabla y requiere permisos DDL. No se ejecuta automáticamente desde la aplicación. Después de aplicarla, verifica el resultado con `SHOW CREATE TABLE auth_user;` y `SHOW INDEX FROM auth_user;`.
+
 ## Estado del proyecto
 
 Este README documenta la estructura y funcionalidades identificadas en la rama `main`. La implementación y sus capacidades pueden evolucionar junto con el repositorio.

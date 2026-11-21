@@ -56,6 +56,39 @@ function isSessionValid(): bool {
     return true;
 }
 
+function isVisitor(): bool {
+    return (int) ($_SESSION['is_staff'] ?? 0) === 0
+        && (int) ($_SESSION['is_superuser'] ?? 0) === 0;
+}
+
+function isReadOnlyStaff(): bool {
+    return (int) ($_SESSION['is_staff'] ?? 0) === 1
+        && (int) ($_SESSION['is_superuser'] ?? 0) === 0;
+}
+
+function isAdministrator(): bool {
+    return (int) ($_SESSION['is_staff'] ?? 0) === 1
+        && (int) ($_SESSION['is_superuser'] ?? 0) === 1;
+}
+
+function requireAdmin(): void {
+    requireLogin(true);
+    if (!isAdministrator()) {
+        http_response_code(403);
+        exit('Forbidden');
+    }
+}
+
+function requireApiAdmin(): void {
+    requireApiLogin(true);
+    if (!isAdministrator()) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'Forbidden']);
+        exit();
+    }
+}
+
 function requireLogin(bool $staffOnly = false): void {
     startSecureSession();
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');

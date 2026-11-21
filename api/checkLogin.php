@@ -26,22 +26,24 @@ $stmt->execute();
 $stmt->store_result();
 
 $valid = false;
+$db_password = null;
+
 if ($stmt->num_rows === 1) {
     $stmt->bind_result($db_password, $firstname, $lastname, $active, $staff, $superuser, $user_origen);
     $stmt->fetch();
 
-    // Prefer PHP's password hashing API. Keep legacy PBKDF2 verification only
-    // to support existing accounts during a one-time migration.
-    if (password_get_info($db_password)['algo'] === 0) {
-        $valid = password_verify($password, $db_password);
-    } else {
+    // First try PHP password hashes (bcrypt/Argon). If this is a legacy
+    // PBKDF2 value, fall back to the format already used by this application.
+    $valid = password_verify($password, $db_password);
+
+    if (!$valid) {
         $pieces = explode("$", $db_password);
         if (count($pieces) === 4 && ctype_digit($pieces[1])) {
             $iterations = (int) $pieces[1];
             $salt = $pieces[2];
-            $old_hash = $pieces[3];
-            $hash = base64_encode(hash_pbkdf2("SHA256", $password, $salt, $iterations, 0, true));
-            $valid = hash_equals($old_hash, $hash);
+            $oldHash = $pieces[3];
+            $candidate = base64_encode(hash_pbkdf2("SHA256", $password, $salt, $iterations, 0, true));
+            $valid = hash_equals($oldHash, $candidate);
         }
     }
 }
@@ -52,19 +54,20 @@ if ($valid && ((int) $active !== 1 || !in_array([(int) $staff, (int) $superuser]
     $valid = false;
 }
 
-if ($valid && password_get_info($db_password)['algo'] === 0) {
-    // Upgrade legacy credentials after a successful login.
+if (!$valid) {
+    $_SESSION['login_error'] = 'Usuario o contraseña incorrectos.';
+    header('Location: ../login.php');
+    exit();
+}
+
+// Upgrade legacy hashes after a successful login. password_needs_rehash()
+// also keeps PHP-generated hashes aligned with the current PASSWORD_DEFAULT.
+if (password_needs_rehash($db_password, PASSWORD_DEFAULT)) {
     $newHash = password_hash($password, PASSWORD_DEFAULT);
     $upgradeStmt = $conn->prepare("UPDATE `auth_user` SET `password` = ? WHERE `username` = ?");
     $upgradeStmt->bind_param("ss", $newHash, $username);
     $upgradeStmt->execute();
     $upgradeStmt->close();
-}
-
-if (!$valid) {
-    $_SESSION['login_error'] = 'Usuario o contraseña incorrectos.';
-    header('Location: ../login.php');
-    exit();
 }
 
 session_regenerate_id(true);

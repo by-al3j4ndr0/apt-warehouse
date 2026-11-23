@@ -57,6 +57,25 @@ $csrf = csrfToken();
         </section>
 
         <section class="io-panel">
+            <h4>Procesamiento masivo de códigos</h4>
+            <p class="io-note">Pega códigos HBL de distintos manifiestos. El servidor localizará cada envío y obtendrá su manifiesto. Solo se registrarán los que estén en <strong>at_customs</strong>.</p>
+            <label for="bulkCodes" class="form-label">Códigos (uno por línea, coma, punto y coma o espacios)</label>
+            <textarea id="bulkCodes" class="form-control" style="min-height:150px;font-family:monospace" placeholder="HBL001234&#10;HBL005678"></textarea>
+            <div class="d-flex gap-2 flex-wrap mt-2">
+                <button id="processBulk" type="button" class="btn btn-primary">Procesar listado</button>
+                <button id="clearBulk" type="button" class="btn btn-outline-secondary">Limpiar</button>
+            </div>
+            <div id="bulkProgress" class="io-note mt-2" role="status" aria-live="polite">Listo para procesar.</div>
+            <div id="bulkSummary" class="io-summary" hidden>
+                <div class="io-stat"><strong id="bulkEntered">0</strong><span>Entradas registradas</span></div>
+                <div class="io-stat"><strong id="bulkDuplicates">0</strong><span>Duplicados</span></div>
+                <div class="io-stat"><strong id="bulkInvalid">0</strong><span>Estado no elegible</span></div>
+                <div class="io-stat"><strong id="bulkMissing">0</strong><span>HBL inexistentes</span></div>
+            </div>
+            <div id="bulkReport" class="io-table mt-3" hidden></div>
+        </section>
+
+        <section class="io-panel">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                 <div>
                     <h4 class="mb-1">Control de recepción</h4>
@@ -191,6 +210,92 @@ $csrf = csrfToken();
         }
     }
 
+
+    async function processBulk() {
+        const codes = [...new Set($('bulkCodes').value.split(/[\s,;]+/).map(v => v.trim()).filter(Boolean))];
+        if (!codes.length) { $('bulkProgress').textContent = 'Introduce al menos un código.'; return; }
+        if (registering) return;
+        if (!window.confirm('Se procesarán ' + codes.length + ' códigos. Solo se registrarán los que estén en at_customs. ¿Continuar?')) return;
+        registering = true;
+        $('processBulk').disabled = true;
+        $('registerEntry').disabled = true;
+        $('bulkSummary').hidden = true;
+        $('bulkReport').hidden = true;
+        const results = [];
+        let entered = 0, duplicates = 0, invalid = 0, missing = 0, completed = 0;
+        try {
+            for (let i = 0; i < codes.length; i += 500) {
+                const records = codes.slice(i, i + 500).map(code => ({
+                    id: (crypto.randomUUID ? crypto.randomUUID() : ('evt-' + Date.now() + '-' + Math.random().toString(36).slice(2))).replace(/[^A-Za-z0-9-]/g, '-'),
+                    code
+                }));
+                const response = await fetch('../api/scanner/bulk-sync.php', {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-Token':csrf},
+                    body: JSON.stringify({records})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Error HTTP ' + response.status);
+                Object.values(data.results || {}).forEach(item => {
+                    results.push(item);
+                    if (item.result === 'FOUND') entered++;
+                    else if (item.result === 'DUPLICATE') duplicates++;
+                    else if (item.result === 'INVALID_STATUS') invalid++;
+                    else missing++;
+                });
+                completed += records.length;
+                $('bulkProgress').textContent = 'Procesados ' + completed + ' de ' + codes.length + ' códigos…';
+            }
+            $('bulkProgress').textContent = 'Proceso completado: ' + completed + ' códigos.';
+            $('bulkCodes').value = '';
+        } catch (error) {
+            $('bulkProgress').textContent = 'Proceso detenido tras ' + completed + ' códigos: ' + error.message + '. Los lotes ya confirmados permanecen registrados.';
+        } finally {
+            $('bulkEntered').textContent = entered.toLocaleString('es');
+            $('bulkDuplicates').textContent = duplicates.toLocaleString('es');
+            $('bulkInvalid').textContent = invalid.toLocaleString('es');
+            $('bulkMissing').textContent = missing.toLocaleString('es');
+            $('bulkSummary').hidden = results.length === 0;
+            if (results.length) {
+                const groups = new Map();
+                results.forEach(item => {
+                    const key = item.manifest || 'SIN_MANIFIESTO';
+                    if (!groups.has(key)) groups.set(key, {entered:[],duplicates:[],invalid:[],missing:[]});
+                    const g = groups.get(key);
+                    if (item.result === 'FOUND') g.entered.push(item.code);
+                    else if (item.result === 'DUPLICATE') g.duplicates.push(item.code);
+                    else if (item.result === 'INVALID_STATUS') g.invalid.push(item.code + ' (' + item.shipment_status + ')');
+                    else g.missing.push(item.code);
+                });
+                const table = document.createElement('table');
+                table.className = 'table table-bordered table-sm';
+                const head = document.createElement('thead'), hr = document.createElement('tr');
+                ['Manifiesto','Entradas','Duplicados','No elegibles (estado distinto de at_customs)','No encontrados'].forEach(label => {
+                    const th = document.createElement('th'); th.textContent = label; hr.append(th);
+                });
+                head.append(hr); table.append(head);
+                const body = document.createElement('tbody');
+                [...groups.entries()].sort((a,b) => a[0].localeCompare(b[0],'es')).forEach(([name,g]) => {
+                    const tr = document.createElement('tr');
+                    [name,g.entered.join('\n')||'—',g.duplicates.join('\n')||'—',g.invalid.join('\n')||'—',g.missing.join('\n')||'—'].forEach(value => {
+                        const td = document.createElement('td'); td.style.whiteSpace='pre-wrap'; td.textContent=value; tr.append(td);
+                    });
+                    body.append(tr);
+                });
+                table.append(body);
+                $('bulkReport').replaceChildren(table);
+                $('bulkReport').hidden = false;
+            }
+            registering = false;
+            $('processBulk').disabled = false;
+            $('registerEntry').disabled = false;
+            await loadPending();
+            $('shipmentCode').focus();
+        }
+    }
+
+    $('processBulk').addEventListener('click', processBulk);
+    $('clearBulk').addEventListener('click', () => { $('bulkCodes').value=''; $('bulkSummary').hidden=true; $('bulkReport').hidden=true; $('bulkProgress').textContent='Listado limpiado.'; });
     $('registerEntry').addEventListener('click', () => registerEntry($('shipmentCode').value));
     $('shipmentCode').addEventListener('keyup', event => {
         clearTimeout(codeTimer);

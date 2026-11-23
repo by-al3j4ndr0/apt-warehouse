@@ -37,3 +37,26 @@ Se admiten delimitadores coma o punto y coma, encabezados con o sin acentos. El 
 - Para instalar en Chrome, el sitio debe servirse por HTTPS (o localhost en desarrollo). En Android, abre `/scanner/` en Chrome y usa el menú `Instalar aplicación` o el botón de instalación que aparece cuando la PWA es elegible. Si no aparece, revisar Chrome DevTools > Application > Manifest > Installability y verificar que el icono sea accesible.
 - La tabla de pendientes en `warehouse/inOutShipments.php` usa paginación de 25 filas y búsqueda por HBL, manifiesto, destinatario, municipio y provincia. El resumen muestra los pendientes globales y las entradas aceptadas en los últimos 7 días.
 - La consulta de pendientes acepta `page`, `per_page` y `search`; el resumen semanal cuenta eventos `FOUND` en `scanner_events` usando UTC.
+
+## Procesamiento masivo desde el panel web
+
+En `warehouse/inOutShipments.php` se puede pegar un listado mixto de códigos HBL, sin indicar el manifiesto. Se admiten códigos separados por saltos de línea, espacios, comas o punto y coma.
+
+- El endpoint `api/scanner/bulk-sync.php` busca cada HBL directamente en `shipments` y obtiene el manifiesto y los datos del destinatario desde la base de datos.
+- Solo los envíos cuyo estado actual sea `at_customs` cambian a `warehouse`.
+- Los que ya están en `warehouse` se reportan como duplicados; los que tienen otro estado se reportan como `INVALID_STATUS` y no se modifican.
+- Los HBL que no existen se agrupan en `SIN_MANIFIESTO`.
+- El informe final agrupa entradas, duplicados, estados no elegibles y códigos inexistentes por manifiesto.
+- La interfaz divide automáticamente los listados grandes en lotes de hasta 500 códigos. Cada lote se confirma de forma independiente; si falla uno posterior, los lotes confirmados anteriormente no se revierten.
+
+### Migración adicional
+
+Después de las migraciones del scanner ya documentadas, ejecutar una sola vez:
+
+```sql
+-- database/migrations/20261123_add_scanner_invalid_status.sql
+ALTER TABLE scanner_events
+    MODIFY COLUMN result ENUM('FOUND', 'NOT_FOUND', 'DUPLICATE', 'INVALID_STATUS') NOT NULL;
+```
+
+Esta ampliación permite distinguir un HBL inexistente (`NOT_FOUND`) de un envío existente cuyo estado no permite la entrada (`INVALID_STATUS`).

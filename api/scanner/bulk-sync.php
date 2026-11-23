@@ -83,7 +83,6 @@ try {
                     if ($updateShipment->affected_rows === 1) {
                         $actualResult = 'FOUND';
                         $shipmentStatus = 'warehouse';
-                        $entered++;
                     } else {
                         $shipmentStmt->bind_param('s', $code);
                         $shipmentStmt->execute();

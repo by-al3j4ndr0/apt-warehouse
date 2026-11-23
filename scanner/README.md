@@ -60,3 +60,4 @@ ALTER TABLE scanner_events
 ```
 
 Esta ampliación permite distinguir un HBL inexistente (`NOT_FOUND`) de un envío existente cuyo estado no permite la entrada (`INVALID_STATUS`).
+- El informe del procesamiento masivo se puede descargar desde el botón **Exportar informe CSV**. El archivo incluye una fila por código, el manifiesto resuelto, el resultado y el estado actual; usa UTF-8 con BOM y separador punto y coma para facilitar su apertura en hojas de cálculo.

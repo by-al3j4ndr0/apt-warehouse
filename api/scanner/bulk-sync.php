@@ -59,7 +59,6 @@ try {
             $actualResult = (string) $prior['result'];
             $manifest = (string) $prior['manifest_name'];
             $shipmentStatus = $actualResult === 'FOUND' ? 'warehouse' : '';
-            $savedResult = false;
         } else {
             $shipmentStmt->bind_param('s', $code);
             $shipmentStmt->execute();
@@ -108,7 +107,7 @@ try {
         }
 
         if ($actualResult === 'FOUND') {
-            if (!$prior) $entered++;
+            $entered++;
         } elseif ($actualResult === 'DUPLICATE') {
             $duplicates++;
         } elseif ($actualResult === 'INVALID_STATUS') {

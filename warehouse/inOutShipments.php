@@ -72,6 +72,7 @@ $csrf = csrfToken();
                 <div class="io-stat"><strong id="bulkInvalid">0</strong><span>Estado no elegible</span></div>
                 <div class="io-stat"><strong id="bulkMissing">0</strong><span>HBL inexistentes</span></div>
             </div>
+            <div class="d-flex justify-content-end mt-3"><button id="exportBulkCsv" type="button" class="btn btn-outline-success" hidden>Exportar informe CSV</button></div>
             <div id="bulkReport" class="io-table mt-3" hidden></div>
         </section>
 
@@ -115,7 +116,7 @@ $csrf = csrfToken();
     const $ = id => document.getElementById(id);
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
     const pageSize = 25;
-    let currentPage = 1, totalPages = 1, searchTimer = null, codeTimer = null, registering = false;
+    let currentPage = 1, totalPages = 1, searchTimer = null, codeTimer = null, registering = false, lastBulkResults = [];
 
     function feedback(message, type = '') {
         const el = $('scanFeedback');
@@ -211,6 +212,42 @@ $csrf = csrfToken();
     }
 
 
+
+    function csvCell(value) {
+        let text = String(value ?? '');
+        // Prevent spreadsheet formula execution when opening CSV files.
+        if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+        return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    function exportBulkCsv() {
+        if (!lastBulkResults.length) return;
+        const headers = ['manifiesto', 'codigo_hbl', 'resultado', 'estado_actual'];
+        const labels = {
+            FOUND: 'ENTRADA_REGISTRADA',
+            DUPLICATE: 'DUPLICADO',
+            INVALID_STATUS: 'ESTADO_NO_ELEGIBLE',
+            NOT_FOUND: 'NO_ENCONTRADO'
+        };
+        const rows = lastBulkResults.map(item => [
+            item.manifest || 'SIN_MANIFIESTO',
+            item.code,
+            labels[item.result] || item.result,
+            item.shipment_status || (item.result === 'NOT_FOUND' ? 'NO_EXISTE' : '')
+        ]);
+        const csv = '\uFEFF' + [headers, ...rows].map(row => row.map(csvCell).join(';')).join('\r\n');
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const date = new Date().toISOString().replace(/[:.]/g, '-');
+        link.href = url;
+        link.download = 'informe-procesamiento-masivo-' + date + '.csv';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
     async function processBulk() {
         const codes = [...new Set($('bulkCodes').value.split(/[\s,;]+/).map(v => v.trim()).filter(Boolean))];
         if (!codes.length) { $('bulkProgress').textContent = 'Introduce al menos un código.'; return; }
@@ -221,6 +258,8 @@ $csrf = csrfToken();
         $('registerEntry').disabled = true;
         $('bulkSummary').hidden = true;
         $('bulkReport').hidden = true;
+        $('exportBulkCsv').hidden = true;
+        lastBulkResults = [];
         const results = [];
         let entered = 0, duplicates = 0, invalid = 0, missing = 0, completed = 0;
         try {
@@ -255,7 +294,9 @@ $csrf = csrfToken();
             $('bulkDuplicates').textContent = duplicates.toLocaleString('es');
             $('bulkInvalid').textContent = invalid.toLocaleString('es');
             $('bulkMissing').textContent = missing.toLocaleString('es');
+            lastBulkResults = results.slice();
             $('bulkSummary').hidden = results.length === 0;
+            $('exportBulkCsv').hidden = results.length === 0;
             if (results.length) {
                 const groups = new Map();
                 results.forEach(item => {
@@ -295,7 +336,8 @@ $csrf = csrfToken();
     }
 
     $('processBulk').addEventListener('click', processBulk);
-    $('clearBulk').addEventListener('click', () => { $('bulkCodes').value=''; $('bulkSummary').hidden=true; $('bulkReport').hidden=true; $('bulkProgress').textContent='Listado limpiado.'; });
+    $('exportBulkCsv').addEventListener('click', exportBulkCsv);
+    $('clearBulk').addEventListener('click', () => { $('bulkCodes').value=''; $('bulkSummary').hidden=true; $('bulkReport').hidden=true; $('exportBulkCsv').hidden=true; lastBulkResults=[]; $('bulkProgress').textContent='Listado limpiado.'; });
     $('registerEntry').addEventListener('click', () => registerEntry($('shipmentCode').value));
     $('shipmentCode').addEventListener('keyup', event => {
         clearTimeout(codeTimer);

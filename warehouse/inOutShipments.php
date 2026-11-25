@@ -15,6 +15,10 @@ $csrf = csrfToken();
     <link rel="stylesheet" href="../resources/css/bootstrap.min.css">
     <script src="../resources/js/bootstrap.bundle.min.js"></script>
     <style>
+        .io-panel.io-entry-panel{border-left:5px solid #0d6efd;background:linear-gradient(110deg,#f5f9ff 0%,#fff 38%)}
+        .io-panel.io-exit-panel{border-left:5px solid #198754;background:linear-gradient(110deg,#f3fbf6 0%,#fff 38%)}
+        .io-section-kicker{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#526273;margin-bottom:5px}
+        .io-entry-panel h4{color:#174a83}.io-exit-panel h4{color:#17633b}
         .io-wrap{max-width:1200px;margin:24px auto;padding:0 16px}
         .io-panel{background:#fff;border:1px solid #dee2e6;border-radius:12px;padding:20px;margin-bottom:18px}
         .io-scan{display:flex;gap:10px;flex-wrap:wrap}
@@ -43,11 +47,11 @@ $csrf = csrfToken();
     <main class="io-wrap">
         <div class="mb-3">
             <h2>Entrada y salida de mercancías</h2>
-            <p class="text-muted mb-0">Control de recepción en almacén sincronizado con la aplicación Android.</p>
+            <p class="text-muted mb-0">Registro y seguimiento de entradas, salidas y recepción de mercancías entre almacenes.</p>
         </div>
 
-        <section class="io-panel">
-            <h4>Entrada a almacén</h4>
+        <section class="io-panel io-entry-panel">
+            <span class="io-section-kicker">Entrada · Recepción</span><h4>Entrada a almacén</h4>
             <p class="io-note">Escanea los códigos de los envíos que se encuentran en estado <strong>at_customs</strong>. Al confirmar una entrada válida, el sistema cambia su estado a <strong>warehouse</strong>.</p>
             <div class="io-scan">
                 <input id="shipmentCode" type="text" class="form-control" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escanea o escribe el código HBL">
@@ -56,8 +60,8 @@ $csrf = csrfToken();
             <div id="scanFeedback" class="io-feedback" role="status" aria-live="polite">Esperando escaneo…</div>
         </section>
 
-        <section class="io-panel">
-            <h4>Procesamiento masivo de códigos</h4>
+        <section class="io-panel io-entry-panel">
+            <span class="io-section-kicker">Entrada · Procesamiento</span><h4>Procesamiento masivo de códigos</h4>
             <p class="io-note">Pega códigos HBL de distintos manifiestos. El servidor localizará cada envío y obtendrá su manifiesto. Solo se registrarán los que estén en <strong>at_customs</strong>.</p>
             <label for="bulkCodes" class="form-label">Códigos (uno por línea, coma, punto y coma o espacios)</label>
             <textarea id="bulkCodes" class="form-control" style="min-height:150px;font-family:monospace" placeholder="HBL001234&#10;HBL005678"></textarea>
@@ -76,8 +80,8 @@ $csrf = csrfToken();
             <div id="bulkReport" class="io-table mt-3" hidden></div>
         </section>
 
-        <section class="io-panel">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <section class="io-panel io-entry-panel">
+            <span class="io-section-kicker">Entrada · Control e historial</span><div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2>
                 <div>
                     <h4 class="mb-1">Control de recepción</h4>
                     <p class="io-note mb-0">Resumen general y envíos pendientes de entrada.</p>
@@ -105,15 +109,15 @@ $csrf = csrfToken();
             </div>
         </section>
 
-        <section class="io-panel">
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2"><div><h4>Historial de transferencias</h4><p class="io-note">Consulta el informe general y la relación detallada de cada transferencia.</p></div><button id="refreshTransfers" class="btn btn-outline-secondary">Actualizar</button></div>
+        <section class="io-panel io-exit-panel">
+<span class="io-section-kicker">Salida · Historial y recepción</span><div class="d-flex justify-content-between align-items-center flex-wrap gap-2"><div><h4>Historial de transferencias</h4><p class="io-note">Consulta el informe general y la relación detallada de cada transferencia.</p></div><button id="refreshTransfers" class="btn btn-outline-secondary">Actualizar</button></div>
 <div class="io-toolbar"><input id="transferSearch" type="search" class="form-control" placeholder="Buscar por UUID, destino, usuario, chofer o matrícula"><button id="exportTransferGeneral" class="btn btn-outline-success">Exportar informe general CSV</button></div>
 <div id="transfersStatus" class="io-note"></div>
 <div class="io-table"><table class="table table-striped"><thead><tr><th>Fecha</th><th>UUID</th><th>Destino</th><th>Usuario</th><th>Chofer</th><th>Matrícula</th><th>Envíos</th><th>Recibidos</th><th>Informe</th></tr></thead><tbody id="transfersBody"><tr><td colspan="9">Cargando…</td></tr></tbody></table></div>
 <div id="transferDetail" hidden class="mt-3"><h5 id="transferDetailTitle">Detalle</h5><p id="transferDetailMeta" class="io-note"></p><div class="d-flex justify-content-end mb-2"><button id="exportTransferItems" class="btn btn-outline-success">Exportar relación de envíos CSV</button></div><div class="io-table"><table class="table table-sm table-bordered"><thead><tr><th>Código HBL</th><th>Manifiesto</th><th>Estado</th><th>Fecha recepción</th><th>Recibido por</th></tr></thead><tbody id="transferItemsBody"></tbody></table></div></div>
 </section>
-<section class="io-panel">
-<h4>Procesamiento masivo de transferencias</h4><p class="io-note">Procesa códigos de diferentes manifiestos. Para salida se crea una transferencia nueva; para entrada se indica el UUID que se recibe.</p>
+<section class="io-panel io-exit-panel">
+<span class="io-section-kicker">Salida / recepción · Procesamiento</span><h4>Procesamiento masivo de transferencias</h4><p class="io-note">Procesa códigos de diferentes manifiestos. Para salida se crea una transferencia nueva; para entrada se indica el UUID que se recibe.</p>
 <label class="form-label" for="transferBulkDirection">Operación</label><select id="transferBulkDirection" class="form-select mb-2"><option value="outbound">Salida</option><option value="inbound">Entrada / recepción</option></select>
 <div id="bulkOutboundFields"><label class="form-label" for="bulkDestination">Almacén destino</label><select id="bulkDestination" class="form-select mb-2"></select><label class="form-label" for="bulkDriver">Chofer</label><input id="bulkDriver" class="form-control mb-2" maxlength="180"><label class="form-label" for="bulkPlate">Matrícula</label><input id="bulkPlate" class="form-control mb-2" maxlength="40"></div>
 <div id="bulkInboundFields" hidden><label class="form-label" for="bulkTransferUuid">UUID de transferencia</label><input id="bulkTransferUuid" class="form-control mb-2" placeholder="UUID de la transferencia"></div>

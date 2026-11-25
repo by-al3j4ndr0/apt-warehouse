@@ -32,5 +32,5 @@ jobs:
 
       - name: Validate warehouse transfer migration formatting
         run: |
-          ! grep -nF '\\n' database/migrations/20261125_warehouse_transfers.sql
+          ! grep -nF '\n' database/migrations/20261125_warehouse_transfers.sql
           grep -q "ALTER TABLE shipments MODIFY COLUMN status VARCHAR(32)" database/migrations/20261125_warehouse_transfers.sql

@@ -1,5 +1,5 @@
 -- Warehouse-to-warehouse transfer workflow.
--- Run once after taking a full database backup. Does not alter existing shipment rows.
+-- Run once after taking a full database backup. Does not alter existing shipment rows.\n-- Ensure the status column can store the in_transfer state.\nALTER TABLE shipments MODIFY COLUMN status VARCHAR(32) NOT NULL DEFAULT 'warehouse';
 CREATE TABLE warehouse_locations (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(150) NOT NULL,

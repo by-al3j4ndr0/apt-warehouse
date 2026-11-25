@@ -19,7 +19,7 @@ $csrf = csrfToken();
 <label class="field-label" for="manifestName">Nombre de la sesión / manifiesto CSV</label><input id="manifestName" type="text" placeholder="Ej. Manifiesto 20-11-2026" maxlength="255">
 <label class="file-picker" for="csvFile"><span>＋</span><span><b>Seleccionar archivo CSV</b><small id="fileName">Código, destinatario, municipio y provincia</small></span></label><input id="csvFile" type="file" accept=".csv,text/csv" hidden>
 <div class="manifest-status" id="manifestStatus">No hay ningún listado cargado.</div></section>
-<section class="panel scanner-panel"><div class="section-head"><div><h2>Escanear mercancía</h2><p>Conecta el lector Bluetooth en modo teclado.</p></div><span class="scan-icon">▦</span></div>
+<section class="panel scanner-panel" id="manifestEntryPanel"><div class="section-head"><div><h2>Escanear mercancía</h2><p>Conecta el lector Bluetooth en modo teclado.</p></div><span class="scan-icon">▦</span></div>
 <label class="field-label" for="scanInput">Código QR</label><div class="scan-row"><input id="scanInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Esperando escaneo…" disabled><button id="scanButton" type="button" disabled>Verificar</button></div>
 <div id="result" class="result neutral" role="status" aria-live="polite">Selecciona un manifiesto o carga un CSV para habilitar el escaneo.</div><div id="shipmentInfo" class="shipment-info" hidden></div>
 <p class="hint">El código se procesa automáticamente al terminar la lectura del escáner o tras dejar de escribir. También puedes pulsar Verificar.</p></section>
@@ -31,7 +31,7 @@ $csrf = csrfToken();
 <section class="panel" id="warehouseTransferPanel">
 <div class="section-head"><div><h2>Transferencias entre almacenes</h2><p>Registra salidas y recibe mercancía enviada desde Almacén Arceo &amp; Padrón.</p></div></div>
 <label class="field-label" for="transferMode">Operación</label>
-<select id="transferMode" class="form-control"><option value="outbound">Salida a otro almacén</option><option value="inbound">Entrada / recepción de transferencia</option></select>
+<select id="transferMode" class="form-control"><option value="manifest" selected>Entrada de mercancía (manifiesto)</option><option value="outbound">Salida a otro almacén</option><option value="inbound">Entrada / recepción de transferencia</option></select>
 <div id="outboundFields">
 <label class="field-label" for="transferDestination">Almacén de destino</label><select id="transferDestination" class="form-control"><option value="">Cargando almacenes…</option></select>
 <label class="field-label" for="transferDriver">Chofer</label><input id="transferDriver" type="text" maxlength="180" placeholder="Nombre del chofer">

@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const DB_NAME = "aptWarehouseScanner";
 const DB_VERSION = 1;
-let db, rows = [], manifest = "", manifestSource = "csv", processing = false, scanTimer = null, deferredInstallPrompt = null;
+let db, rows = [], manifest = "", manifestSource = "csv", processing = false, scanTimer = null, deferredInstallPrompt = null, manifestInitialized = false;
 
 function openDb() {
  return new Promise((resolve,reject)=>{
@@ -142,6 +142,13 @@ async function sync(){
   tx.oncomplete=async()=>{$("syncStatus").textContent="Sincronización completada. Entradas: "+(data.entered||0)+" · Duplicados: "+(data.duplicates||0)+" · No válidos: "+(data.not_found||0)+".";await render();};
  }catch(error){$("syncStatus").textContent="No se pudo sincronizar: "+error.message+" (se conservaron localmente).";}
 }
+async function initializeManifestMode(){
+ if(manifestInitialized)return;
+ await loadSystemManifestList();
+ const names=await requestResult(store("manifests").getAllKeys());
+ if(names.length)await loadManifest(names[names.length-1]);
+ manifestInitialized=true;
+}
 async function init(){
  db=await openDb();
  $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;
@@ -156,11 +163,11 @@ async function init(){
  });
  $("exportButton").addEventListener("click",exportCsv);$("syncButton").addEventListener("click",sync);
  $("loadSystemManifest").addEventListener("click",loadSelectedSystemManifest);
+ $("transferMode").addEventListener("change",()=>{if($("transferMode").value==="manifest")initializeManifestMode().catch(e=>{$("manifestStatus").textContent="No se pudieron cargar los manifiestos: "+e.message;});});
  $("manifestName").addEventListener("change",async()=>{const name=$("manifestName").value.trim();if(name)await loadManifest(name);});
  const connection=()=>{$("connection").textContent=navigator.onLine?"En línea":"Sin conexión";$("connection").style.background=navigator.onLine?"#ffffff20":"#8a5a00";};
  window.addEventListener("online",connection);window.addEventListener("offline",connection);connection();
- await loadSystemManifestList();
- const names=await requestResult(store("manifests").getAllKeys());if(names.length)await loadManifest(names[names.length-1]);
+ if($("transferMode").value==="manifest")await initializeManifestMode();
  if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
  window.addEventListener("beforeinstallprompt",event=>{
   event.preventDefault();deferredInstallPrompt=event;$("installButton").hidden=false;

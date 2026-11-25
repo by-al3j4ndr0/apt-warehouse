@@ -1,14 +1,25 @@
 <?php
 require_once __DIR__ . '/auth.php';
-requireAdmin();
-header('Content-Type: application/json');
+requireApiAdmin();
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    http_response_code(405);
+    header('Allow: POST');
+    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    exit;
+}
+
+requireCsrf();
 
 // Ajusta según tu conexión existente (mysqli)
 require_once __DIR__ . '/db_connect.php'; // o tu archivo de conexión
 
 $action = $_POST['action'] ?? '';
 
-function respond($success, $message = '') {
+function respond($success, $message = '', $status = 200) {
+    http_response_code($status);
     echo json_encode(['success' => $success, 'message' => $message]);
     exit;
 }
@@ -74,5 +85,6 @@ try {
             respond(false, 'Acción no reconocida');
     }
 } catch (Throwable $e) {
-    respond(false, $e->getMessage());
+    error_log('Driver/vehicle administration error: ' . $e->getMessage());
+    respond(false, 'No se pudo completar la operación.', 500);
 }

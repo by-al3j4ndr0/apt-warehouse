@@ -11,6 +11,11 @@ $csrf = csrfToken();
 </head><body>
 <header class="topbar"><div><strong>APT Warehouse</strong><span>Control de mercancías</span></div><div class="topbar-actions"><button id="installButton" type="button" hidden>Instalar app</button><span id="connection" class="pill">Comprobando conexión…</span></div></header>
 <main>
+<section class="panel operation-picker"><div class="section-head"><div><h1>Control QR</h1><p>Selecciona qué operación vas a realizar para mostrar sus herramientas.</p></div></div>
+<label class="field-label" for="transferMode">Tipo de operación</label>
+<select id="transferMode" class="form-control"><option value="" selected>Selecciona una opción para comenzar…</option><option value="manifest">Entrada de mercancía (manifiesto)</option><option value="outbound">Salida a otro almacén</option><option value="inbound">Entrada / recepción de transferencia</option></select>
+</section>
+<div id="scannerContent" hidden>
 <section class="panel" id="manifestLoaderPanel"><div class="section-head"><div><h1>Verificación QR</h1><p>Selecciona un manifiesto del sistema o importa un CSV.</p></div></div>
 <label class="field-label" for="systemManifestSelect">Manifiestos disponibles en apt-warehouse</label>
 <div class="scan-row"><select id="systemManifestSelect"><option value="">Cargando manifiestos…</option></select><button id="loadSystemManifest" type="button">Cargar</button></div>
@@ -30,8 +35,6 @@ $csrf = csrfToken();
 <div class="actions"><button id="syncButton" type="button" class="secondary">Sincronizar registros</button><span id="syncStatus">Los registros se guardan en este dispositivo.</span></div></section>
 <section class="panel" id="warehouseTransferPanel">
 <div class="section-head"><div><h2>Transferencias entre almacenes</h2><p>Registra salidas y recibe mercancía enviada desde Almacén Arceo &amp; Padrón.</p></div></div>
-<label class="field-label" for="transferMode">Operación</label>
-<select id="transferMode" class="form-control"><option value="manifest" selected>Entrada de mercancía (manifiesto)</option><option value="outbound">Salida a otro almacén</option><option value="inbound">Entrada / recepción de transferencia</option></select>
 <div id="outboundFields">
 <label class="field-label" for="transferDestination">Almacén de destino</label><select id="transferDestination" class="form-control"><option value="">Cargando almacenes…</option></select>
 <label class="field-label" for="transferDriver">Chofer</label><input id="transferDriver" type="text" maxlength="180" placeholder="Nombre del chofer">
@@ -42,7 +45,10 @@ $csrf = csrfToken();
 <div id="inboundFields" hidden>
 <label class="field-label" for="incomingTransfer">Transferencia pendiente de recepción</label><div class="scan-row"><select id="incomingTransfer" class="form-control"></select><button id="refreshIncomingTransfers" type="button" class="secondary">Actualizar</button></div>
 </div>
+<div id="transferScanFields">
 <label class="field-label" id="transferScanLabel" for="transferScanInput">Código HBL</label>
 <div class="scan-row"><input id="transferScanInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escanea o escribe el código HBL"><button id="transferScanButton" type="button">Registrar escaneo</button></div>
-<div id="transferFeedback" class="result neutral" role="status" aria-live="polite">Selecciona una operación para comenzar.</div>
-</section></main><script src="./app.js" defer></script><script src="./transfers.js" defer></script></body></html>
+<div id="transferFeedback" class="result neutral" role="status" aria-live="polite">Listo para escanear.</div>
+</div>
+</section>
+</div></main><script src="./app.js" defer></script><script src="./transfers.js" defer></script></body></html>

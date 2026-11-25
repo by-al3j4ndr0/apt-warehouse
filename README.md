@@ -86,7 +86,7 @@ git clone https://github.com/by-al3j4ndr0/apt-warehouse.git
 cd apt-warehouse
 ```
 
-2. Copia `.env.example` a `.env` fuera del directorio público (o configura estas variables en el entorno del servidor). Las cuatro variables `DB_*` son obligatorias; la aplicación ya no contiene credenciales predeterminadas. No publiques el archivo `.env`:
+2. Configura las cuatro variables `DB_*` en el entorno del proceso PHP o mediante el mecanismo de secretos de tu proveedor. `.env.example` es solo una plantilla: PHP no carga archivos `.env` automáticamente. Si tu alojamiento utiliza uno, configura expresamente su carga segura fuera del directorio público. Las cuatro variables `DB_*` son obligatorias; la aplicación ya no contiene credenciales predeterminadas. No publiques credenciales:
 
 ```env
 DB_HOST=localhost

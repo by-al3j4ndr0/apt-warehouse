@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const DB_NAME = "aptWarehouseScanner";
 const DB_VERSION = 1;
-let db, rows = [], manifest = "", manifestSource = "csv", processing = false, scanTimer = null, deferredInstallPrompt = null;
+let db, rows = [], manifest = "", manifestSource = "csv", processing = false, scanTimer = null, deferredInstallPrompt = null, manifestInitialized = false;
 
 function openDb() {
  return new Promise((resolve,reject)=>{
@@ -142,6 +142,12 @@ async function sync(){
   tx.oncomplete=async()=>{$("syncStatus").textContent="Sincronización completada. Entradas: "+(data.entered||0)+" · Duplicados: "+(data.duplicates||0)+" · No válidos: "+(data.not_found||0)+".";await render();};
  }catch(error){$("syncStatus").textContent="No se pudo sincronizar: "+error.message+" (se conservaron localmente).";}
 }
+async function initializeManifestMode(){
+ if(manifestInitialized)return;
+ if($("transferMode").value==="manifest")await initializeManifestMode();
+ manifestInitialized=true;
+}
+window.initializeManifestMode=initializeManifestMode;
 async function init(){
  db=await openDb();
  $("csvFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const name=$("manifestName").value.trim()||file.name.replace(/\.csv$/i,"");$("manifestName").readOnly=false;

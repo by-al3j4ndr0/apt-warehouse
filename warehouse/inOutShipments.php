@@ -106,10 +106,21 @@ $csrf = csrfToken();
         </section>
 
         <section class="io-panel">
-            <h5>Transferencia entre almacenes</h5>
-            <p class="io-note mb-0">El flujo de salida para transferencias a otro almacén queda reservado para una próxima etapa. La distribución de mercancías continúa gestionándose exclusivamente desde el módulo <strong>Deliveries</strong>.</p>
-        </section>
-    </main>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2"><div><h4>Historial de transferencias</h4><p class="io-note">Consulta el informe general y la relación detallada de cada transferencia.</p></div><button id="refreshTransfers" class="btn btn-outline-secondary">Actualizar</button></div>
+<div class="io-toolbar"><input id="transferSearch" type="search" class="form-control" placeholder="Buscar por UUID, destino, usuario, chofer o matrícula"><button id="exportTransferGeneral" class="btn btn-outline-success">Exportar informe general CSV</button></div>
+<div id="transfersStatus" class="io-note"></div>
+<div class="io-table"><table class="table table-striped"><thead><tr><th>Fecha</th><th>UUID</th><th>Destino</th><th>Usuario</th><th>Chofer</th><th>Matrícula</th><th>Envíos</th><th>Recibidos</th><th>Informe</th></tr></thead><tbody id="transfersBody"><tr><td colspan="9">Cargando…</td></tr></tbody></table></div>
+<div id="transferDetail" hidden class="mt-3"><h5 id="transferDetailTitle">Detalle</h5><p id="transferDetailMeta" class="io-note"></p><div class="d-flex justify-content-end mb-2"><button id="exportTransferItems" class="btn btn-outline-success">Exportar relación de envíos CSV</button></div><div class="io-table"><table class="table table-sm table-bordered"><thead><tr><th>Código HBL</th><th>Manifiesto</th><th>Estado</th><th>Fecha recepción</th><th>Recibido por</th></tr></thead><tbody id="transferItemsBody"></tbody></table></div></div>
+</section>
+<section class="io-panel">
+<h4>Procesamiento masivo de transferencias</h4><p class="io-note">Procesa códigos de diferentes manifiestos. Para salida se crea una transferencia nueva; para entrada se indica el UUID que se recibe.</p>
+<label class="form-label" for="transferBulkDirection">Operación</label><select id="transferBulkDirection" class="form-select mb-2"><option value="outbound">Salida</option><option value="inbound">Entrada / recepción</option></select>
+<div id="bulkOutboundFields"><label class="form-label" for="bulkDestination">Almacén destino</label><select id="bulkDestination" class="form-select mb-2"></select><label class="form-label" for="bulkDriver">Chofer</label><input id="bulkDriver" class="form-control mb-2" maxlength="180"><label class="form-label" for="bulkPlate">Matrícula</label><input id="bulkPlate" class="form-control mb-2" maxlength="40"></div>
+<div id="bulkInboundFields" hidden><label class="form-label" for="bulkTransferUuid">UUID de transferencia</label><input id="bulkTransferUuid" class="form-control mb-2" placeholder="UUID de la transferencia"></div>
+<label class="form-label" for="transferBulkCodes">Códigos HBL (uno por línea, coma, punto y coma o espacios)</label><textarea id="transferBulkCodes" class="form-control" rows="5" placeholder="HBL001234&#10;HBL005678"></textarea>
+<button id="transferBulkRun" class="btn btn-primary mt-2">Procesar listado</button><div id="transferBulkStatus" class="io-note mt-2" role="status"></div>
+<div id="transferBulkReportWrap" hidden class="io-table mt-3"><table class="table table-sm table-bordered"><thead><tr><th>Manifiesto</th><th>HBL</th><th>Resultado</th><th>Estado</th></tr></thead><tbody id="transferBulkReport"></tbody></table></div>
+</section></main>
 <script>
 (() => {
     'use strict';
@@ -363,5 +374,6 @@ $csrf = csrfToken();
     $('shipmentCode').focus();
 })();
 </script>
+<script src="../resources/js/warehouseTransfers.js"></script>
 </body>
 </html>

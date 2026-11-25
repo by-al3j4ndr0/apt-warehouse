@@ -47,7 +47,7 @@ $csrf = csrfToken();
     <main class="io-wrap">
         <div class="mb-3">
             <h2>Entrada y salida de mercancías</h2>
-            <p class="text-muted mb-0">Control de recepción en almacén sincronizado con la aplicación Android.</p>
+            <p class="text-muted mb-0">Registro y seguimiento de entradas, salidas y recepción de mercancías entre almacenes.</p>
         </div>
 
         <section class="io-panel io-entry-panel">

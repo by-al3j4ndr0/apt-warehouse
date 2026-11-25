@@ -48,6 +48,7 @@
                             <li><a class="dropdown-item" href="../settings/manageDriversVehicules.php">Choferes y Vehiculos</a></li>
                             <li><a class="dropdown-item" href="../settings/logs.php">Ver Logs</a></li>
                             <li><a class="dropdown-item" href="../settings/manageUsers.php">Gestionar Usuarios</a></li>
+                            <li><a class="dropdown-item" href="../settings/manageWarehouses.php">Almacenes de destino</a></li>
                         </ul>
                     </li>
                     <?php endif; ?>

@@ -28,4 +28,21 @@ $csrf = csrfToken();
 <section class="panel"><div class="section-head"><div><h2>Últimos registros</h2><p id="recordCount">0 escaneos registrados</p></div><button id="exportButton" class="secondary" type="button">Exportar CSV</button></div>
 <div class="table-wrap"><table><thead><tr><th>Hora</th><th>Código</th><th>Destinatario</th><th>Resultado</th></tr></thead><tbody id="recordsBody"><tr><td colspan="4" class="empty">Todavía no hay escaneos.</td></tr></tbody></table></div>
 <div class="actions"><button id="syncButton" type="button" class="secondary">Sincronizar registros</button><span id="syncStatus">Los registros se guardan en este dispositivo.</span></div></section>
-</main><script src="./app.js" defer></script></body></html>
+<section class="panel" id="warehouseTransferPanel">
+<div class="section-head"><div><h2>Transferencias entre almacenes</h2><p>Registra salidas y recibe mercancía enviada desde Almacén Arceo &amp; Padrón.</p></div></div>
+<label class="field-label" for="transferMode">Operación</label>
+<select id="transferMode" class="form-control"><option value="outbound">Salida a otro almacén</option><option value="inbound">Entrada / recepción de transferencia</option></select>
+<div id="outboundFields">
+<label class="field-label" for="transferDestination">Almacén de destino</label><select id="transferDestination" class="form-control"><option value="">Cargando almacenes…</option></select>
+<label class="field-label" for="transferDriver">Chofer</label><input id="transferDriver" type="text" maxlength="180" placeholder="Nombre del chofer">
+<label class="field-label" for="transferPlate">Matrícula</label><input id="transferPlate" type="text" maxlength="40" placeholder="Matrícula del vehículo">
+<p class="hint">UUID de la transferencia activa: <strong id="activeTransferUuid">—</strong></p>
+<button id="finishTransfer" class="secondary" type="button">Cerrar sesión de escaneo</button>
+</div>
+<div id="inboundFields" hidden>
+<label class="field-label" for="incomingTransfer">Transferencia pendiente de recepción</label><div class="scan-row"><select id="incomingTransfer" class="form-control"></select><button id="refreshIncomingTransfers" type="button" class="secondary">Actualizar</button></div>
+</div>
+<label class="field-label" id="transferScanLabel" for="transferScanInput">Código HBL</label>
+<div class="scan-row"><input id="transferScanInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escanea o escribe el código HBL"><button id="transferScanButton" type="button">Registrar escaneo</button></div>
+<div id="transferFeedback" class="result neutral" role="status" aria-live="polite">Selecciona una operación para comenzar.</div>
+</section></main><script src="./app.js" defer></script><script src="./transfers.js" defer></script></body></html>

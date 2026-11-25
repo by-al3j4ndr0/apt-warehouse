@@ -30,8 +30,9 @@ try {
             || $destinationId < 1 || $driver === '' || mb_strlen($driver) > 180
             || $plate === '' || mb_strlen($plate) > 40) throw new DomainException('INVALID_TRANSFER');
         if ($shipment['status'] !== 'warehouse') throw new DomainException('INVALID_STATUS');
-        $loc = $conn->prepare('SELECT name FROM warehouse_locations WHERE id = ? AND is_active = 1 AND name <> 'Almacén Arceo & Padrón'');
-        $loc->bind_param('i', $destinationId); $loc->execute();
+        $originName = 'Almacén Arceo & Padrón';
+        $loc = $conn->prepare('SELECT name FROM warehouse_locations WHERE id = ? AND is_active = 1 AND name <> ?');
+        $loc->bind_param('is', $destinationId, $originName); $loc->execute();
         $destination = $loc->get_result()->fetch_assoc(); $loc->close();
         if (!$destination) throw new DomainException('INVALID_DESTINATION');
         $find = $conn->prepare('SELECT id, destination_id, driver, vehicle_plate FROM warehouse_transfers WHERE transfer_uuid = ? FOR UPDATE');

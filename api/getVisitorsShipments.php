@@ -25,14 +25,14 @@
 
     // Conectar a la base de datos
     include 'db_connect.php';
-    include 'getInfoById.php';
     include 'sanitizeStatus.php';
 
     try {
         // Búsqueda con LIKE (puede devolver múltiples resultados)
-        $shipment_stmt = $conn->prepare("SELECT `origen`, `hbl`, `ci`, `manifest`, `route_id`, `status` 
-                                        FROM `shipments` 
-                                        WHERE `origen` = ?");
+        $shipment_stmt = $conn->prepare("SELECT s.`origen`, s.`hbl`, s.`ci`, s.`manifest`, s.`route_id`, s.`status`, o.`name` AS `origen_name`
+                                        FROM `shipments` s
+                                        LEFT JOIN `origen` o ON o.`id` = s.`origen`
+                                        WHERE s.`origen` = ?");
         $shipment_stmt->bind_param("s", $user_origen);
         $shipment_stmt->execute();
         $shipment_result = $shipment_stmt->get_result();
@@ -42,14 +42,8 @@
         
         // Obtener todos los envíos encontrados
         $shipments = [];
-        $origen_cache = [];
-
         while ($row = $shipment_result->fetch_assoc()) {
-            $oid = $row['origen'];
-            if (!isset($origen_cache[$oid])) {
-                $origen_cache[$oid] = getInfoById($oid, 'origen')['name'] ?? 'Unknown';
-            }
-            $header_data['origen'][] = $origen_cache[$oid];
+            $header_data['origen'][] = $row['origen_name'] ?? 'Unknown';
             $shipments[] = $row;
         }
 
@@ -97,11 +91,13 @@
         foreach ($shipments as $shipment) {
             // Combinar datos del envío con el nombre del cliente (si existe)
             $combined = $shipment;
-            $combined['name'] = $clients_by_ci[$shipment['ci']]['name'] ?? 'Cliente no encontrado';
-            $combined['city'] = strtoupper($clients_by_ci[$shipment['ci']]['city']) ?? 'Cliente no encontrado';
-            $combined['state'] = strtoupper($clients_by_ci[$shipment['ci']]['state']) ?? 'Cliente no encontrado';
-            $combined['origen'] = getInfoById($shipment['origen'], 'origen')['name'];
-            $combined['status'] = getStatusList()[$shipment['status']];
+            $client = $clients_by_ci[$shipment['ci']] ?? null;
+            $combined['name'] = $client['name'] ?? 'Cliente no encontrado';
+            $combined['city'] = $client !== null ? strtoupper((string) ($client['city'] ?? '')) : 'Cliente no encontrado';
+            $combined['state'] = $client !== null ? strtoupper((string) ($client['state'] ?? '')) : 'Cliente no encontrado';
+            $combined['origen'] = $shipment['origen_name'] ?? 'Unknown';
+            $statusList = getStatusList();
+            $combined['status'] = $statusList[$shipment['status']] ?? $shipment['status'];
             $response['row_data'][] = $combined;
         }
 

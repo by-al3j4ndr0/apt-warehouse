@@ -144,8 +144,8 @@ async function sync(){
 }
 async function initializeManifestMode(){
  if(manifestInitialized)return;
- if($("transferMode").value==="manifest")await initializeManifestMode();
  manifestInitialized=true;
+ await loadSystemManifestList();
 }
 window.initializeManifestMode=initializeManifestMode;
 async function init(){
@@ -165,7 +165,6 @@ async function init(){
  $("manifestName").addEventListener("change",async()=>{const name=$("manifestName").value.trim();if(name)await loadManifest(name);});
  const connection=()=>{$("connection").textContent=navigator.onLine?"En línea":"Sin conexión";$("connection").style.background=navigator.onLine?"#ffffff20":"#8a5a00";};
  window.addEventListener("online",connection);window.addEventListener("offline",connection);connection();
- await loadSystemManifestList();
  const names=await requestResult(store("manifests").getAllKeys());if(names.length)await loadManifest(names[names.length-1]);
  if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
  window.addEventListener("beforeinstallprompt",event=>{

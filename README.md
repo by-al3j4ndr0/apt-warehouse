@@ -240,7 +240,17 @@ La migración:
 
 **Antes de ejecutarla:** realiza una copia de seguridad completa y prueba primero en una copia de la base de datos. La operación altera la estructura de la tabla y requiere permisos DDL. No se ejecuta automáticamente desde la aplicación. Después de aplicarla, verifica el resultado con `SHOW CREATE TABLE auth_user;` y `SHOW INDEX FROM auth_user;`.
 
-## Transferencias entre almacenes\n\nAntes de habilitar esta funcionalidad, ejecuta una sola vez `database/migrations/20261125_warehouse_transfers.sql` después de realizar una copia de seguridad. La migración crea el catálogo de almacenes, las cabeceras de transferencia y el detalle de envíos; no cambia los registros existentes.\n\nEl almacén de origen queda fijado como **Almacén Arceo & Padrón**. Los destinos se administran desde **Ajustes → Almacenes de destino**. El scanner permite registrar salidas agrupadas bajo un UUID y recibir los envíos asociados a una transferencia. En la salida, `shipments.status` cambia de `warehouse` a `in_transfer`; al recibir cada envío perteneciente a la transferencia seleccionada, vuelve a `warehouse`. La API valida el estado y la relación de transferencia dentro de transacciones SQL.\n\nEl historial y los informes se consultan desde **Almacén → Entrada y Salida**. Se pueden exportar el informe general y la relación de envíos de una transferencia en CSV. El procesamiento masivo admite códigos de distintos manifiestos y devuelve el resultado individual de cada código.\n\nLa recepción requiere seleccionar la transferencia pendiente correspondiente; así se impide recibir un envío que esté en tránsito pero no pertenezca a esa transferencia.\n\n## Estado del proyecto
+## Transferencias entre almacenes
+
+Antes de habilitar esta funcionalidad, ejecuta una sola vez `database/migrations/20261125_warehouse_transfers.sql` después de realizar una copia de seguridad. La migración crea el catálogo de almacenes, las cabeceras de transferencia y el detalle de envíos; no cambia los registros existentes.
+
+El almacén de origen queda fijado como **Almacén Arceo & Padrón**. Los destinos se administran desde **Ajustes → Almacenes de destino**. El scanner permite registrar salidas agrupadas bajo un UUID y recibir los envíos asociados a una transferencia. En la salida, `shipments.status` cambia de `warehouse` a `in_transfer`; al recibir cada envío perteneciente a la transferencia seleccionada, vuelve a `warehouse`. La API valida el estado y la relación de transferencia dentro de transacciones SQL.
+
+El historial y los informes se consultan desde **Almacén → Entrada y Salida**. Se pueden exportar el informe general y la relación de envíos de una transferencia en CSV. El procesamiento masivo admite códigos de distintos manifiestos y devuelve el resultado individual de cada código.
+
+La recepción requiere seleccionar la transferencia pendiente correspondiente; así se impide recibir un envío que esté en tránsito pero no pertenezca a esa transferencia.
+
+## Estado del proyecto
 
 Este README documenta la estructura y funcionalidades identificadas en la rama `main`. La implementación y sus capacidades pueden evolucionar junto con el repositorio.
 

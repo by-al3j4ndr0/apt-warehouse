@@ -11,7 +11,7 @@ $csrf = csrfToken();
 </head><body>
 <header class="topbar"><div><strong>APT Warehouse</strong><span>Control de mercancías</span></div><div class="topbar-actions"><button id="installButton" type="button" hidden>Instalar app</button><span id="connection" class="pill">Comprobando conexión…</span></div></header>
 <main>
-<section class="panel"><div class="section-head"><div><h1>Verificación QR</h1><p>Selecciona un manifiesto del sistema o importa un CSV.</p></div></div>
+<section class="panel" id="manifestLoaderPanel"><div class="section-head"><div><h1>Verificación QR</h1><p>Selecciona un manifiesto del sistema o importa un CSV.</p></div></div>
 <label class="field-label" for="systemManifestSelect">Manifiestos disponibles en apt-warehouse</label>
 <div class="scan-row"><select id="systemManifestSelect"><option value="">Cargando manifiestos…</option></select><button id="loadSystemManifest" type="button">Cargar</button></div>
 <p class="hint" id="systemManifestStatus">Se mostrarán manifiestos con mercancía pendiente o ya recibida en almacén.</p>
@@ -23,9 +23,9 @@ $csrf = csrfToken();
 <label class="field-label" for="scanInput">Código QR</label><div class="scan-row"><input id="scanInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Esperando escaneo…" disabled><button id="scanButton" type="button" disabled>Verificar</button></div>
 <div id="result" class="result neutral" role="status" aria-live="polite">Selecciona un manifiesto o carga un CSV para habilitar el escaneo.</div><div id="shipmentInfo" class="shipment-info" hidden></div>
 <p class="hint">El código se procesa automáticamente al terminar la lectura del escáner o tras dejar de escribir. También puedes pulsar Verificar.</p></section>
-<section class="stats-grid" aria-label="Resumen">
+<section class="stats-grid" id="manifestStats" aria-label="Resumen">
 <div class="stat"><b id="countFound">0</b><span>Encontrados</span></div><div class="stat"><b id="countMissing">0</b><span>No encontrados</span></div><div class="stat"><b id="countDuplicate">0</b><span>Duplicados</span></div><div class="stat"><b id="countPending">0</b><span>Pendientes</span></div></section>
-<section class="panel"><div class="section-head"><div><h2>Últimos registros</h2><p id="recordCount">0 escaneos registrados</p></div><button id="exportButton" class="secondary" type="button">Exportar CSV</button></div>
+<section class="panel" id="manifestHistory"><div class="section-head"><div><h2>Últimos registros</h2><p id="recordCount">0 escaneos registrados</p></div><button id="exportButton" class="secondary" type="button">Exportar CSV</button></div>
 <div class="table-wrap"><table><thead><tr><th>Hora</th><th>Código</th><th>Destinatario</th><th>Resultado</th></tr></thead><tbody id="recordsBody"><tr><td colspan="4" class="empty">Todavía no hay escaneos.</td></tr></tbody></table></div>
 <div class="actions"><button id="syncButton" type="button" class="secondary">Sincronizar registros</button><span id="syncStatus">Los registros se guardan en este dispositivo.</span></div></section>
 <section class="panel" id="warehouseTransferPanel">

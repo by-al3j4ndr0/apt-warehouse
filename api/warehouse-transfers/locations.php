@@ -22,8 +22,8 @@ try {
     $action = (string)($data['action'] ?? '');
     if ($action === 'save') {
         $id = (int)($data['id'] ?? 0); $name = trim((string)($data['name'] ?? ''));
-        if ($name === '' || mb_strlen($name) > 150) {
-            http_response_code(400); echo json_encode(['error' => 'Nombre de almacén inválido.']); exit;
+        if ($name === '' || mb_strlen($name) > 150 || mb_strtolower($name, 'UTF-8') === mb_strtolower('Almacén Arceo & Padrón', 'UTF-8')) {
+            http_response_code(400); echo json_encode(['error' => 'Nombre de almacén inválido o reservado para el almacén de origen.']); exit;
         }
         if ($id > 0) {
             $stmt = $conn->prepare('UPDATE warehouse_locations SET name = ? WHERE id = ?');

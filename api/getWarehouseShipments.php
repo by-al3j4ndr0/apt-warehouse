@@ -6,23 +6,24 @@ requireApiLogin(true);
     header('Content-Type: application/json');
 
     $request = json_decode(file_get_contents('php://input'), true);
-
-    $location = $request['location'];
-
-    if($location == "warehouse"){
-        $status_warehouse = "warehouse";
-        $starus_draft = "draft";
+    if (!is_array($request) || ($request['location'] ?? '') !== 'warehouse') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Ubicación no válida']);
+        exit;
     }
+
+    $status_warehouse = "warehouse";
+    $starus_draft = "draft";
 
     // Conectar a la base de datos
     include 'db_connect.php';
-    include 'getInfoById.php';
 
     try {
         // Búsqueda con LIKE (puede devolver múltiples resultados)
-        $shipment_stmt = $conn->prepare("SELECT `origen`, `hbl`, `ci`, `manifest`, `route_id` 
-                                        FROM `shipments` 
-                                        WHERE `status` = ? OR `status` = ?");
+        $shipment_stmt = $conn->prepare("SELECT s.`origen`, s.`hbl`, s.`ci`, s.`manifest`, s.`route_id`, o.`name` AS `origen_name`
+                                        FROM `shipments` s
+                                        LEFT JOIN `origen` o ON o.`id` = s.`origen`
+                                        WHERE s.`status` = ? OR s.`status` = ?");
         $shipment_stmt->bind_param("ss", $status_warehouse, $starus_draft);
         $shipment_stmt->execute();
         $shipment_result = $shipment_stmt->get_result();
@@ -32,14 +33,8 @@ requireApiLogin(true);
         
         // Obtener todos los envíos encontrados
         $shipments = [];
-        $origen_cache = [];
-
         while ($row = $shipment_result->fetch_assoc()) {
-            $oid = $row['origen'];
-            if (!isset($origen_cache[$oid])) {
-                $origen_cache[$oid] = getInfoById($oid, 'origen')['name'] ?? 'Unknown';
-            }
-            $header_data['origen'][] = $origen_cache[$oid];
+            $header_data['origen'][] = $row['origen_name'] ?? 'Unknown';
             $shipments[] = $row;
         }
 
@@ -87,10 +82,11 @@ requireApiLogin(true);
         foreach ($shipments as $shipment) {
             // Combinar datos del envío con el nombre del cliente (si existe)
             $combined = $shipment;
-            $combined['name'] = $clients_by_ci[$shipment['ci']]['name'] ?? 'Cliente no encontrado';
-            $combined['city'] = strtoupper($clients_by_ci[$shipment['ci']]['city']) ?? 'Cliente no encontrado';
-            $combined['state'] = strtoupper($clients_by_ci[$shipment['ci']]['state']) ?? 'Cliente no encontrado';
-            $combined['origen'] = getInfoById($shipment['origen'], 'origen')['name'];
+            $client = $clients_by_ci[$shipment['ci']] ?? null;
+            $combined['name'] = $client['name'] ?? 'Cliente no encontrado';
+            $combined['city'] = $client !== null ? strtoupper((string) ($client['city'] ?? '')) : 'Cliente no encontrado';
+            $combined['state'] = $client !== null ? strtoupper((string) ($client['state'] ?? '')) : 'Cliente no encontrado';
+            $combined['origen'] = $shipment['origen_name'] ?? 'Unknown';
             $response['row_data'][] = $combined;
         }
 

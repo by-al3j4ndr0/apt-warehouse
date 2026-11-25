@@ -24,3 +24,13 @@ jobs:
           set -e
           find . -type f -name "*.php" -not -path "./.git/*" -print0 |
             xargs -0 -n1 php -l
+
+      - name: Check scanner JavaScript syntax
+        run: |
+          node --check scanner/app.js
+          node --check scanner/transfers.js
+
+      - name: Validate warehouse transfer migration formatting
+        run: |
+          ! grep -nF $'\\n' database/migrations/20261125_warehouse_transfers.sql
+          grep -q "ALTER TABLE shipments MODIFY COLUMN status VARCHAR(32)" database/migrations/20261125_warehouse_transfers.sql

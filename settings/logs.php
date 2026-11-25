@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../api/auth.php';
-require_once __DIR__ . '/../api/logView.php';
 requireAdmin();
+require_once __DIR__ . '/../api/logView.php';
 
 ?>
 <!doctype html>

@@ -39,7 +39,9 @@ Sistema web de gestión de almacén y logística desarrollado en PHP. La aplicac
 - 🛡️ **Controles de seguridad**
   - Cabeceras HTTP de seguridad.
   - Uso de `utf8mb4` en la conexión MySQL.
-  - Variables de entorno para la configuración de la base de datos.
+  - Variables de entorno obligatorias para la configuración de la base de datos, sin credenciales de respaldo en el código.
+  - Autorización administrativa aplicada directamente a endpoints sensibles, incluido el visor de logs.
+  - Protección CSRF para la administración de choferes y vehículos.
   - Validación automática de sintaxis PHP mediante GitHub Actions.
 
 ## Arquitectura
@@ -84,7 +86,7 @@ git clone https://github.com/by-al3j4ndr0/apt-warehouse.git
 cd apt-warehouse
 ```
 
-2. Configura las variables de entorno tomando como referencia `.env.example`:
+2. Configura las cuatro variables `DB_*` en el entorno del proceso PHP o mediante el mecanismo de secretos de tu proveedor. `.env.example` es solo una plantilla: PHP no carga archivos `.env` automáticamente. Si tu alojamiento utiliza uno, configura expresamente su carga segura fuera del directorio público. Las cuatro variables `DB_*` son obligatorias; la aplicación ya no contiene credenciales predeterminadas. No publiques credenciales:
 
 ```env
 DB_HOST=localhost

@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/auth.php';
+requireApiAdmin();
+
 $logDir = realpath(__DIR__ . '/../logs');
 if ($logDir === false || !is_dir($logDir)) {
     $logDir = __DIR__ . '/../logs';

@@ -1,6 +1,7 @@
 <?php
     require_once __DIR__ . '/../api/auth.php';
     requireAdmin();
+    $csrf = csrfToken();
 
     include '../api/getDeliveryInfo.php';
 
@@ -18,6 +19,7 @@
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/295/295128.png">
     <script src="../resources/js/bootstrap.bundle.min.js"></script>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choferes y Vehiculos</title>
 </head>

@@ -1,4 +1,6 @@
 const API_URL = "../api/manageDriversVehicules.php";
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+if (!csrfToken) throw new Error("No se pudo inicializar el token de seguridad.");
 
 const modal     = document.getElementById("modal");
 const modalBox  = document.getElementById("modal-box");
@@ -22,10 +24,10 @@ function showError(msg) {
 }
 
 async function apiRequest(action, data = {}) {
-    const payload = new URLSearchParams({ action, ...data });
+    const payload = new URLSearchParams({ action, ...data, csrf_token: csrfToken });
     const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRF-Token": csrfToken },
         body: payload
     });
     const json = await res.json();

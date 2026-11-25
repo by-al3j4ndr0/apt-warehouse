@@ -7,3 +7,7 @@
 #installButton{padding:8px 12px;font-size:12px;background:#fff;color:#123b5d}
 #installButton[hidden]{display:none}
 @media(max-width:600px){.topbar-actions{gap:6px}#installButton{padding:7px 9px;font-size:11px}}
+
+.operation-picker{border-top:4px solid #17679a;position:relative;z-index:1}
+.operation-picker h1{font-size:23px}
+#scannerContent[hidden],#scannerContent [hidden]{display:none!important}

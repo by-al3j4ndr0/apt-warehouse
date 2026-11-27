@@ -14,6 +14,7 @@ if (isset($_GET['ci'])) {
     }
     
     include '../api/getClientsDetails.php';
+    include '../api/sanitizeStatus.php';
     
     clientDetails($ci);
     getClientShipments($ci);
@@ -107,21 +108,10 @@ if (isset($_GET['ci'])) {
                             $shipment_hbl = htmlspecialchars($shipment_info_data['hbl'], ENT_QUOTES, 'UTF-8');
                             $shipment_route_id = htmlspecialchars($shipment_info_data['route_id'], ENT_QUOTES, 'UTF-8');
                             $shipment_status = htmlspecialchars($shipment_info_data['status'], ENT_QUOTES, 'UTF-8');
+                            $statusList = getStatusList();
 
                             // Translate status
-                            if($shipment_status == "warehouse") {
-                                $shipment_status_display = "Almacen";
-                            } else if($shipment_status == "draft") {
-                                $shipment_status_display = "Borrador";
-                            } else if($shipment_status == "delivering") {
-                                $shipment_status_display = "Entregando";
-                            } else if($shipment_status == "finished") {
-                                $shipment_status_display = "Terminada";
-                            } else if($shipment_status == "detained") {
-                                $shipment_status_display = "Detenido";
-                            } else {
-                                $shipment_status_display = $shipment_status;
-                            }
+                            $shipment_status_display = $statusList[$shipment_status];
                     ?>
                         <tr>
                             <td><?php echo $shipment_hbl ?></td>

@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 header('Content-Type: application/json; charset=utf-8');
 
 include '../api/getInfoById.php';
+include '../api/sanitizeStatus.php';
 
     $request = json_decode(file_get_contents('php://input'), true);
 
@@ -77,12 +78,13 @@ include '../api/getInfoById.php';
 
         // Construir respuesta combinando envíos con sus clientes
         $response = [];
+        $statusList = getStatusList();
         foreach ($shipments as $shipment) {
             // Combinar datos del envío con el nombre del cliente (si existe)
             $combined = $shipment;
             $combined['name'] = $clients_by_ci[$shipment['ci']] ?? 'Cliente no encontrado';
             $combined['origen'] = getInfoById($shipment['origen'], 'origen')['name'];
-            $combined['status'] = modStatus($shipment['status']);
+            $combined['status'] = $statusList[$shipment['status']];
             $response[] = $combined;
         }
 
@@ -98,20 +100,4 @@ include '../api/getInfoById.php';
     }
 
     $conn->close();
-
-    function modStatus(string $status) {
-        if ($status == 'at_customs') {
-            return 'En aduana';
-        } else if ($status == 'draft') {
-            return 'Borrador';
-        } else if ($status == 'delivering') {
-            return 'Entregando';
-        } else if ($status == 'finished') {
-            return 'Terminado';
-        } else if ($status == 'warehouse') {
-            return 'Almacen';
-        } else if ($status == 'detained') {
-            return 'Detenido';
-        }
-    }
 ?>

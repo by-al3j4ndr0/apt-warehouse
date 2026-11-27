@@ -46,7 +46,7 @@ try {
     }
 
     $transitions = [
-        'at_customs' => ['at_customs'],
+        'at_customs' => ['at_customs', 'detained'],
         'warehouse' => ['warehouse', 'draft', 'delivering', 'detained'],
         'draft' => ['draft', 'warehouse', 'delivering', 'detained'],
         'delivering' => ['delivering', 'finished', 'detained'],
@@ -62,7 +62,7 @@ try {
         throw new Exception('Customs and warehouse shipments cannot have a route');
     }
 
-    if (!in_array($status, ['at_customs', 'warehouse'], true) && $routeId === 0) {
+    if (!in_array($status, ['at_customs', 'detained', 'warehouse'], true) && $routeId === 0) {
         throw new Exception('Routed shipments must have a route');
     }
 

@@ -84,7 +84,7 @@
             'city'     => array_values(array_unique($header_data['city'] ?? [])),
             'state'    => array_values(array_unique($header_data['state'] ?? [])),
             'route_id' => 'route_id',
-            'status'   => ['Detenido', 'Almacen', 'Borrador', 'Entregando', 'Entregado'],
+            'status'   => ['Detenido', 'En Aduana', 'Almacen', 'Borrador', 'Entregando', 'Entregado'],
         ];
         $response['header_data'] = $header_data_clr;
 
